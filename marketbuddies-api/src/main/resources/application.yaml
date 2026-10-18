@@ -1,3 +1,39 @@
+# Cada valor vem de variável de ambiente; o padrão depois de ":" é o ambiente local
+# (docker-compose.yml na raiz). No Railway as variáveis apontam para os serviços do projeto.
 spring:
   application:
     name: marketbuddies-api
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/marketbuddies}
+    username: ${DB_USER:marketbuddies}
+    password: ${DB_PASSWORD:marketbuddies}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:update}
+    open-in-view: false
+    show-sql: ${SHOW_SQL:false}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  port: ${PORT:8080}
+  # Atrás do proxy do Railway, monta links e redirects com https e o domínio público
+  forward-headers-strategy: framework

@@ -175,7 +175,42 @@ _A preencher: envio pelo Gmail, registro de cada e-mail no PostgreSQL, prints._
 
 ## Variáveis de Ambiente
 
-_A preencher por serviço. Nenhuma senha fica no repositório._
+Nenhuma senha fica no repositório. Cada `application.yaml` lê as configurações no formato `${VARIAVEL:padrão}`: o padrão é o ambiente local do `docker-compose.yml`, e no Railway as variáveis são cadastradas em cada serviço.
+
+### MarketBuddies API
+
+| Variável | Padrão local | Descrição |
+|----------|--------------|-----------|
+| `DB_URL` | `jdbc:postgresql://localhost:5432/marketbuddies` | URL JDBC do PostgreSQL |
+| `DB_USER` | `marketbuddies` | Usuário do banco |
+| `DB_PASSWORD` | `marketbuddies` | Senha do banco |
+| `DDL_AUTO` | `update` | Estratégia do Hibernate para o schema |
+| `SHOW_SQL` | `false` | Mostra o SQL no log |
+| `RABBITMQ_HOST` | `localhost` | Host do RabbitMQ |
+| `RABBITMQ_PORT` | `5672` | Porta AMQP |
+| `RABBITMQ_USER` | `guest` | Usuário do RabbitMQ |
+| `RABBITMQ_PASSWORD` | `guest` | Senha do RabbitMQ |
+| `MAIL_HOST` | `smtp.gmail.com` | Servidor SMTP |
+| `MAIL_PORT` | `587` | Porta SMTP (STARTTLS) |
+| `MAIL_USERNAME` | — | Conta Gmail que envia as confirmações |
+| `MAIL_PASSWORD` | — | Senha de app do Gmail (exige verificação em duas etapas) |
+| `PORT` | `8080` | Porta HTTP (o Railway injeta a dele) |
+
+### MarketBuddies Worker
+
+| Variável | Padrão local | Descrição |
+|----------|--------------|-----------|
+| `RABBITMQ_HOST` | `localhost` | Host do RabbitMQ |
+| `RABBITMQ_PORT` | `5672` | Porta AMQP |
+| `RABBITMQ_USER` | `guest` | Usuário do RabbitMQ |
+| `RABBITMQ_PASSWORD` | `guest` | Senha do RabbitMQ |
+| `TRANQUILO_BANK_URL` | `http://localhost:8090` | Endereço da API do Tranquilo Bank |
+
+### Tranquilo Bank
+
+| Variável | Padrão local | Descrição |
+|----------|--------------|-----------|
+| `PORT` | `8090` | Porta HTTP |
 
 ---
 

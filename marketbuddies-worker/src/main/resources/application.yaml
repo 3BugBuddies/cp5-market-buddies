@@ -1,3 +1,18 @@
+# Cada valor vem de variável de ambiente; o padrão depois de ":" é o ambiente local
+# (docker-compose.yml na raiz). No Railway as variáveis apontam para os serviços do projeto.
 spring:
   application:
     name: marketbuddies-worker
+
+  # O worker só consome a fila e chama o banco por HTTP: não sobe servidor web
+  main:
+    web-application-type: none
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+tranquilo-bank:
+  url: ${TRANQUILO_BANK_URL:http://localhost:8090}
