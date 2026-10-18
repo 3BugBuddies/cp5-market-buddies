@@ -1,0 +1,785 @@
+{
+  "info": {
+    "_postman_id": "5d0c7a3e-2b9f-4c1d-8e4a-3f6b1a9c7d52",
+    "name": "MarketBuddies API — CP5 (Java Advanced)",
+    "description": "Coleção de testes da API do MarketBuddies e do Tranquilo Bank (CP5 Java Advanced).\n\nPor padrão aponta para o deploy no Railway:\n- {{api}} = https://marketbuddies-api-production.up.railway.app\n- {{bank}} = https://tranquilo-bank-production.up.railway.app\n\nPara testar localmente, troque as variáveis da coleção por:\n- api = http://localhost:8080\n- bank = http://localhost:8090\n\nCredenciais: o cliente de teste (clientEmail / clientPassword) já vem preenchido. Para o ADMIN, preencha adminEmail e adminPassword com o ADMIN informado no .txt da entrega.\n\nRode em ordem (Collection Runner), do início ao fim: os logins guardam os tokens em {{token}} e {{adminToken}}, e as compras guardam o id do pedido em {{orderId}}. A request 'Consultar pedido' deve ser repetida depois de ~2 s até o status chegar a APPROVED. As compras dependem do estoque inicial do seed. O print P13 do README é o Collection Runner com todos os testes passando.\n\nEsta coleção também pode ser importada no Insomnia (Import > From File).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "api",
+      "value": "https://marketbuddies-api-production.up.railway.app",
+      "type": "string",
+      "description": "URL da API. Local: http://localhost:8080"
+    },
+    {
+      "key": "bank",
+      "value": "https://tranquilo-bank-production.up.railway.app",
+      "type": "string",
+      "description": "URL do Tranquilo Bank. Local: http://localhost:8090"
+    },
+    {
+      "key": "clientEmail",
+      "value": "cliente@marketbuddies.com",
+      "type": "string"
+    },
+    {
+      "key": "clientPassword",
+      "value": "cliente123",
+      "type": "string"
+    },
+    {
+      "key": "adminEmail",
+      "value": "",
+      "type": "string",
+      "description": "preencher com o ADMIN informado no .txt da entrega"
+    },
+    {
+      "key": "adminPassword",
+      "value": "",
+      "type": "string",
+      "description": "preencher com o ADMIN informado no .txt da entrega"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "orderId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Autenticação",
+      "item": [
+        {
+          "name": "Login (cliente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('accessToken presente', function () {",
+                  "    pm.expect(body.accessToken).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test('tokenType é Bearer', function () {",
+                  "    pm.expect(body.tokenType).to.eql('Bearer');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('token', body.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Autentica o cliente de teste e guarda o accessToken em {{token}}, usado nas compras. Demonstra o login JWT da API (Bearer). Print P1 do README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{clientEmail}}\",\n  \"password\": \"{{clientPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api}}/api/auth/login",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('accessToken presente', function () {",
+                  "    pm.expect(body.accessToken).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "pm.test('tokenType é Bearer', function () {",
+                  "    pm.expect(body.tokenType).to.eql('Bearer');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('adminToken', body.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Autentica o ADMIN e guarda o accessToken em {{adminToken}}, usado em GET /api/emails. Exige adminEmail e adminPassword preenchidos (ADMIN do .txt da entrega). Sem print dedicado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api}}/api/auth/login",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Senha errada: a API responde 401 com 'Usuário ou senha inválidos'. Demonstra que a autenticação rejeita credencial incorreta. Print P2 do README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{clientEmail}}\",\n  \"password\": \"senha-errada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api}}/api/auth/login",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Produtos",
+      "item": [
+        {
+          "name": "Listar produtos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Resposta é um array', function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Rota pública (sem token) que lista o catálogo com preço, preço final (com oferta) e estoque. Print P3 do README.",
+            "url": {
+              "raw": "{{api}}/api/products",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Compras",
+      "item": [
+        {
+          "name": "Compra aprovada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Pedido nasce AWAITING_PAYMENT', function () {",
+                  "    pm.expect(body.status).to.eql('AWAITING_PAYMENT');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('orderId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "description": "Cliente autenticado compra 1 Café (id 7) e 2 Bananas (id 1), total R$ 30,47, abaixo do limite de R$ 500. A API responde 202 AWAITING_PAYMENT e guarda o id em {{orderId}}; o pagamento segue pelas filas até o banco. Print P4 do README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 7,\n      \"quantity\": 1\n    },\n    {\n      \"productId\": 1,\n      \"quantity\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api}}/api/orders",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Consultar pedido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Pedido consultado é o criado', function () {",
+                  "    pm.expect(String(body.id)).to.eql(String(pm.collectionVariables.get('orderId')));",
+                  "});",
+                  "",
+                  "pm.test('Status válido', function () {",
+                  "    pm.expect(['AWAITING_PAYMENT', 'APPROVED', 'REFUSED']).to.include(body.status);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "description": "Consulta o pedido criado na última compra (id em {{orderId}}). Logo após a compra o status ainda é AWAITING_PAYMENT; repita a request depois de ~2 s até aparecer APPROVED, com authorizationCode e statusEmail SENT. Print P5 do README.",
+            "url": {
+              "raw": "{{api}}/api/orders/{{orderId}}",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{orderId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Compra recusada (acima de R$ 500)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 202', function () {",
+                  "    pm.response.to.have.status(202);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('Pedido nasce AWAITING_PAYMENT', function () {",
+                  "    pm.expect(body.status).to.eql('AWAITING_PAYMENT');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('orderId', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "description": "17 Cafés (id 7) + 21 Maçãs (id 2) somam R$ 524,08. A API aceita (202), mas o Tranquilo Bank recusa o valor acima de R$ 500,00; consulte o pedido com 'Consultar pedido' e ele aparece como REFUSED, com o estoque devolvido. Print P6 do README. Depende do estoque do seed (Café 18, Maçã 21): se a compra aprovada já levou 1 café, ainda sobram 17.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 7,\n      \"quantity\": 17\n    },\n    {\n      \"productId\": 2,\n      \"quantity\": 21\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api}}/api/orders",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Compra sem estoque",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "description": "Pede 999 unidades do Café, mais que o estoque. A API responde 409 e nenhum item é baixado. Print P7 do README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 7,\n      \"quantity\": 999\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api}}/api/orders",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Compra sem token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 401', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Mesma compra, sem o header Authorization: a API responde 401. Demonstra que a compra exige JWT. Print P8 do README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"productId\": 7,\n      \"quantity\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api}}/api/orders",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Compra com corpo inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('errors presente', function () {",
+                  "    pm.expect(pm.response.json()).to.have.property('errors');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "description": "Lista de itens vazia: a Bean Validation barra com 400 e devolve os erros por campo em 'errors'. Sem print dedicado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api}}/api/orders",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. E-mails",
+      "item": [
+        {
+          "name": "Listar e-mails enviados",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Resposta é um array', function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "description": "Controle de envio dos e-mails de confirmação; só o ADMIN acessa (Bearer de {{adminToken}}, obtido em 'Login (admin)'). Mostra os registros SENT/ERROR. Print P9 do README.",
+            "url": {
+              "raw": "{{api}}/api/emails",
+              "host": [
+                "{{api}}"
+              ],
+              "path": [
+                "api",
+                "emails"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Tranquilo Bank",
+      "item": [
+        {
+          "name": "Autorizar até o limite",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('approved == true', function () {",
+                  "    pm.expect(body.approved).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Chamada direta ao banco com R$ 33,83 (abaixo de R$ 500,00): responde 200 com approved true e um authorizationCode TB-.... Print P10 do README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 42,\n  \"amount\": 33.83,\n  \"customerEmail\": \"cliente@marketbuddies.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{bank}}/api/payments/authorize",
+              "host": [
+                "{{bank}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "authorize"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Autorizar acima do limite",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test('approved == false', function () {",
+                  "    pm.expect(body.approved).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "R$ 523,88 passa de R$ 500,00: o banco responde 200 com approved false e o motivo da recusa (a decisão de negócio volta sempre como 200). Print P11 do README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 43,\n  \"amount\": 523.88,\n  \"customerEmail\": \"cliente@marketbuddies.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{bank}}/api/payments/authorize",
+              "host": [
+                "{{bank}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "authorize"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Autorizar inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  ""
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "description": "Corpo sem 'amount': a validação do banco responde 400. Print P12 do README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 44,\n  \"customerEmail\": \"cliente@marketbuddies.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{bank}}/api/payments/authorize",
+              "host": [
+                "{{bank}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "authorize"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
