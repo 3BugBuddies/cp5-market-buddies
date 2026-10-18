@@ -1,0 +1,22 @@
+# Material de apoio local (enunciado, zip do design)
+materiais/
+
+# Documentos de trabalho locais
+.claude/
+CLAUDE.md
+
+# Segredos locais
+.env
+*.local.yml
+*.local.yaml
+application-local.yml
+application-local.yaml
+
+# IDE e sistema
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Build
+target/

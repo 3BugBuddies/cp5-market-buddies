@@ -1,0 +1,221 @@
+# MarketBuddies — CheckPoint 5 | Java Advanced
+
+Mercado express com loja web autenticada (Spring Security + Thymeleaf + PostgreSQL) e pagamento assíncrono pelo **Tranquilo Bank** via RabbitMQ, com e-mail de confirmação e dashboard da gerência. Entrega única das Partes I e II do CheckPoint 5 da disciplina de Java Advanced (TDS) — FIAP.
+
+> Em construção. As seções marcadas com _a preencher_ entram conforme a implementação avança.
+
+---
+
+## Deploy
+
+| Recurso | URL |
+|---------|-----|
+| Aplicação (Railway) | _a preencher_ |
+| Login | _a preencher_ |
+| Painel do RabbitMQ | _a preencher_ |
+| Vídeo | _a preencher_ |
+
+> O deploy roda no plano de teste do Railway, que tem crédito limitado. Data estimada até quando os serviços ficam no ar: _a preencher após a medição de consumo_.
+
+---
+
+## Integrantes do Grupo
+
+| Nome | RM |
+|------|----|
+| Felipe Yuiti Ishii | 565339 |
+| Gabriel Nogueira Peixoto | 563925 |
+| Giovanna Neri dos Santos | 566154 |
+| Mariana Inoue | 565834 |
+
+**Turma:** 2TDSR
+**IDE utilizada:** IntelliJ IDEA
+
+---
+
+## Arquitetura
+
+Dois serviços Spring Boot no mesmo repositório, conversando só pelo RabbitMQ:
+
+```mermaid
+flowchart LR
+    U[Navegador] --> MB[MarketBuddies]
+    MB -->|pedido de pagamento| Q1[(fila de pedidos)]
+    Q1 --> TB[Tranquilo Bank]
+    TB -->|aprovado ou recusado| Q2[(fila de respostas)]
+    Q2 --> MB
+    MB --> DB[(PostgreSQL)]
+    MB --> M[Gmail]
+```
+
+| Serviço | Pasta | Papel |
+|---------|-------|-------|
+| MarketBuddies | `marketbuddies/` | Loja, login e cadastro, CRUD de produtos, carrinho, envio do pedido de pagamento, e-mail de confirmação, dashboard da gerência |
+| Tranquilo Bank | `tranquilo-bank/` | Consome o pedido de pagamento, aprova ou recusa por uma regra fixa e devolve a resposta |
+
+_Detalhes de exchanges, filas e mensagens: a preencher._
+
+---
+
+## Configuração do Projeto — Spring Initializr
+
+Spring Boot 4.1.1, Java 21, Maven, configuração em YAML.
+
+### MarketBuddies
+
+![Spring Initializr — MarketBuddies](assets/spring-initializr-marketbuddies.png)
+
+| Dependência | Categoria | Descrição |
+|-------------|-----------|-----------|
+| Spring Web | WEB | Camada MVC (controllers, dispatcher servlet) |
+| Spring Security | SECURITY | Login customizado, cadastro, perfis e autorização por rota |
+| Thymeleaf | TEMPLATE ENGINES | Telas renderizadas no servidor |
+| Spring Data JPA | SQL | Persistência com JPA e Hibernate |
+| PostgreSQL Driver | SQL | Driver JDBC do PostgreSQL |
+| Validation | I/O | Bean Validation nos formulários |
+| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
+| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
+| Spring for RabbitMQ | MESSAGING | Envio do pedido de pagamento e leitura da resposta |
+| Java Mail Sender | I/O | E-mail de confirmação de pagamento |
+
+> Com Spring Security e Thymeleaf marcados, o Initializr inclui também `thymeleaf-extras-springsecurity6`, usado para mostrar ou esconder elementos por perfil nas telas.
+
+### Tranquilo Bank
+
+![Spring Initializr — Tranquilo Bank](assets/spring-initializr-tranquilo-bank.png)
+
+| Dependência | Categoria | Descrição |
+|-------------|-----------|-----------|
+| Spring for RabbitMQ | MESSAGING | Consome os pedidos e publica as respostas |
+| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
+| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
+
+---
+
+## Estrutura do Projeto
+
+```
+cp5-market-buddies/
+├── marketbuddies/          # serviço do mercado (Spring MVC + Security + Thymeleaf)
+├── tranquilo-bank/         # serviço do banco (consumidor RabbitMQ)
+├── docker-compose.yml      # PostgreSQL + RabbitMQ para rodar local
+├── postman/                # coleção com as requisições de compra
+├── assets/                 # imagens deste README
+├── design/                 # design system e logos do MarketBuddies
+└── integrantes.txt
+```
+
+_Árvore comentada de cada serviço: a preencher._
+
+---
+
+## Como Executar
+
+### Pré-requisitos
+
+- Java 21+
+- Docker (para PostgreSQL e RabbitMQ)
+
+### Rodando localmente
+
+```bash
+# Clonar o repositório
+git clone https://github.com/3BugBuddies/cp5-market-buddies.git
+cd cp5-market-buddies
+
+# Subir PostgreSQL e RabbitMQ
+docker compose up -d
+```
+
+Depois, rodar `MarketbuddiesApplication` e `TranquiloBankApplication` pela IDE.
+
+| Recurso local | Endereço |
+|---------------|----------|
+| MarketBuddies | _a preencher_ |
+| Painel do RabbitMQ | http://localhost:15672 (guest / guest) |
+| PostgreSQL | `localhost:5432`, banco `marketbuddies` |
+
+---
+
+## Segurança — Spring Security
+
+_A preencher: rotas × perfis (visitante, CLIENTE, ADMIN), login customizado, cadastro, redirecionamento por perfil, página 403._
+
+---
+
+## Mensageria — RabbitMQ
+
+_A preencher: exchanges, filas, routing keys, formato das mensagens, regra de aprovação do Tranquilo Bank, prints do painel._
+
+---
+
+## E-mail de Confirmação
+
+_A preencher: envio pelo Gmail, registro de cada e-mail no PostgreSQL, prints._
+
+---
+
+## Variáveis de Ambiente
+
+_A preencher por serviço. Nenhuma senha fica no repositório._
+
+---
+
+## Credenciais de Teste
+
+| Perfil | E-mail | Senha |
+|--------|--------|-------|
+| ADMIN | _a preencher_ | _a preencher_ |
+| CLIENTE | _a preencher_ | _a preencher_ |
+
+---
+
+## Deploy no Railway
+
+_A preencher: projeto com PostgreSQL, RabbitMQ (com painel de gerenciamento) e os dois serviços deste repositório, cada um com a sua pasta como diretório raiz._
+
+---
+
+## Modelo de Dados
+
+_A preencher: diagrama, campos por tabela, print do banco._
+
+---
+
+## Fluxo de Telas
+
+_A preencher._
+
+---
+
+## Demonstração Visual
+
+_A preencher: prints na ordem do fluxo no navegador, com destaque para o login e o cadastro._
+
+---
+
+## Testes com Postman
+
+_A preencher: coleção em `postman/`, compra aprovada e compra recusada._
+
+---
+
+## Dashboard da Gerência
+
+_A preencher._
+
+---
+
+## Tecnologias Utilizadas
+
+- **Java 21**
+- **Spring Boot 4.1.1**
+- **Spring Web (MVC) + Thymeleaf**
+- **Spring Security**
+- **Spring Data JPA + Hibernate**
+- **PostgreSQL**
+- **Spring for RabbitMQ**
+- **Java Mail Sender**
+- **Lombok**
+- **Docker** e **Railway**
+- **Maven**
