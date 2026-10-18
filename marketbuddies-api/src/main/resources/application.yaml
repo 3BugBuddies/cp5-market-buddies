@@ -20,6 +20,10 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        # Mensagem que falha no consumidor é descartada e logada, em vez de voltar em loop
+        default-requeue-rejected: false
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -37,3 +41,17 @@ server:
   port: ${PORT:8080}
   # Atrás do proxy do Railway, monta links e redirects com https e o domínio público
   forward-headers-strategy: framework
+
+marketbuddies:
+  # Conta ADMIN criada pelo seed. No Railway, ADMIN_PASSWORD é obrigatória (admin123 só vale local)
+  admin:
+    email: ${ADMIN_EMAIL:admin@marketbuddies.com}
+    password: ${ADMIN_PASSWORD:admin123}
+  mail:
+    from: ${MAIL_USERNAME:marketbuddies@exemplo.com}
+
+app:
+  jwt:
+    # HS256 exige chave de 32+ bytes; o padrão só vale para o ambiente local
+    secret: ${JWT_SECRET:marketbuddies-local-dev-secret-key-change-me-0123456789}
+    expiration-ms: 3600000
