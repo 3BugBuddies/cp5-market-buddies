@@ -10,4 +10,5 @@ WORKDIR /app
 RUN addgroup -S tranquilobank && adduser -S tranquilobank -G tranquilobank
 COPY --from=build /app/target/*.jar app.jar
 USER tranquilobank
+EXPOSE 8090
 ENTRYPOINT ["java", "-Duser.timezone=America/Sao_Paulo", "-jar", "app.jar"]

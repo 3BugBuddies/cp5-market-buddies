@@ -35,23 +35,26 @@ Mercado express com loja web autenticada (Spring Security + Thymeleaf + PostgreS
 
 ## Arquitetura
 
-Dois serviços Spring Boot no mesmo repositório, conversando só pelo RabbitMQ:
+Três serviços Spring Boot no mesmo repositório, um para cada caixa do diagrama do enunciado (Back End API, Integração Pagamentos e API do Banco Tranquilo). A separação segue a demo de mensageria da disciplina (`demo-backend-api` + `demo-backend-worker`):
 
 ```mermaid
 flowchart LR
-    U[Navegador] --> MB[MarketBuddies]
-    MB -->|pedido de pagamento| Q1[(fila de pedidos)]
-    Q1 --> TB[Tranquilo Bank]
-    TB -->|aprovado ou recusado| Q2[(fila de respostas)]
-    Q2 --> MB
-    MB --> DB[(PostgreSQL)]
-    MB --> M[Gmail]
+    U[Navegador / Postman] --> API[MarketBuddies API]
+    API -->|pedido de pagamento| Q1[(fila de pedidos)]
+    Q1 --> W[MarketBuddies Worker]
+    W -->|HTTP| TB[Tranquilo Bank]
+    TB -->|aprovado ou recusado| W
+    W -->|resposta| Q2[(fila de respostas)]
+    Q2 --> API
+    API --> DB[(PostgreSQL)]
+    API --> M[Gmail]
 ```
 
-| Serviço | Pasta | Papel |
-|---------|-------|-------|
-| MarketBuddies | `marketbuddies/` | Loja, login e cadastro, CRUD de produtos, carrinho, envio do pedido de pagamento, e-mail de confirmação, dashboard da gerência |
-| Tranquilo Bank | `tranquilo-bank/` | Consome o pedido de pagamento, aprova ou recusa por uma regra fixa e devolve a resposta |
+| Serviço | Pasta | Caixa do diagrama | Papel |
+|---------|-------|-------------------|-------|
+| MarketBuddies API | `marketbuddies-api/` | Back End API + Front end Web | Loja, login e cadastro, CRUD de produtos, carrinho, envio do pedido de pagamento, leitura das respostas, e-mail de confirmação, dashboard da gerência |
+| MarketBuddies Worker | `marketbuddies-worker/` | Integração Pagamentos | Consome o pedido da fila, chama o Tranquilo Bank por HTTP e publica a resposta |
+| Tranquilo Bank | `tranquilo-bank/` | API Plataforma de Pagamentos / Banco Tranquilo | API REST que aprova ou recusa o pagamento por uma regra fixa; não usa RabbitMQ nem banco de dados |
 
 _Detalhes de exchanges, filas e mensagens: a preencher._
 
@@ -61,9 +64,9 @@ _Detalhes de exchanges, filas e mensagens: a preencher._
 
 Spring Boot 4.1.1, Java 21, Maven, configuração em YAML.
 
-### MarketBuddies
+### MarketBuddies API
 
-![Spring Initializr — MarketBuddies](assets/spring-initializr-marketbuddies.png)
+![Spring Initializr — MarketBuddies API](assets/spring-initializr-marketbuddies-api.png)
 
 | Dependência | Categoria | Descrição |
 |-------------|-----------|-----------|
@@ -80,13 +83,25 @@ Spring Boot 4.1.1, Java 21, Maven, configuração em YAML.
 
 > Com Spring Security e Thymeleaf marcados, o Initializr inclui também `thymeleaf-extras-springsecurity6`, usado para mostrar ou esconder elementos por perfil nas telas.
 
+### MarketBuddies Worker
+
+![Spring Initializr — MarketBuddies Worker](assets/spring-initializr-marketbuddies-worker.png)
+
+| Dependência | Categoria | Descrição |
+|-------------|-----------|-----------|
+| Spring for RabbitMQ | MESSAGING | Consome os pedidos e publica as respostas |
+| HTTP Client | WEB | `RestClient` para chamar o Tranquilo Bank, sem subir servidor web |
+| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
+| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
+
 ### Tranquilo Bank
 
 ![Spring Initializr — Tranquilo Bank](assets/spring-initializr-tranquilo-bank.png)
 
 | Dependência | Categoria | Descrição |
 |-------------|-----------|-----------|
-| Spring for RabbitMQ | MESSAGING | Consome os pedidos e publica as respostas |
+| Spring Web | WEB | API REST de pagamentos |
+| Validation | I/O | Validação da requisição de pagamento |
 | Lombok | DEVELOPER TOOLS | Redução de boilerplate |
 | Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
 
@@ -96,8 +111,9 @@ Spring Boot 4.1.1, Java 21, Maven, configuração em YAML.
 
 ```
 cp5-market-buddies/
-├── marketbuddies/          # serviço do mercado (Spring MVC + Security + Thymeleaf)
-├── tranquilo-bank/         # serviço do banco (consumidor RabbitMQ)
+├── marketbuddies-api/      # loja web + back end (Spring MVC + Security + Thymeleaf + JPA)
+├── marketbuddies-worker/   # integração de pagamentos (RabbitMQ + RestClient)
+├── tranquilo-bank/         # API do banco (Spring Web)
 ├── docker-compose.yml      # PostgreSQL + RabbitMQ para rodar local
 ├── postman/                # coleção com as requisições de compra
 ├── assets/                 # imagens deste README
@@ -127,11 +143,13 @@ cd cp5-market-buddies
 docker compose up -d
 ```
 
-Depois, rodar `MarketbuddiesApplication` e `TranquiloBankApplication` pela IDE.
+Depois, rodar pela IDE `MarketbuddiesApiApplication`, `MarketbuddiesWorkerApplication` e `TranquiloBankApplication`.
 
 | Recurso local | Endereço |
 |---------------|----------|
-| MarketBuddies | _a preencher_ |
+| MarketBuddies API | http://localhost:8080 |
+| Tranquilo Bank | http://localhost:8090 |
+| MarketBuddies Worker | sem porta (só fila e HTTP de saída) |
 | Painel do RabbitMQ | http://localhost:15672 (guest / guest) |
 | PostgreSQL | `localhost:5432`, banco `marketbuddies` |
 
@@ -172,7 +190,7 @@ _A preencher por serviço. Nenhuma senha fica no repositório._
 
 ## Deploy no Railway
 
-_A preencher: projeto com PostgreSQL, RabbitMQ (com painel de gerenciamento) e os dois serviços deste repositório, cada um com a sua pasta como diretório raiz._
+_A preencher: projeto com PostgreSQL, RabbitMQ (com painel de gerenciamento) e os três serviços deste repositório, cada um com a sua pasta como diretório raiz._
 
 ---
 
