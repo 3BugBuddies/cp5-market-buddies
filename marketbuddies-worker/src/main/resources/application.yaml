@@ -13,6 +13,12 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        # Mensagem que falha no consumidor não volta para a fila em loop
+        default-requeue-rejected: false
 
 tranquilo-bank:
   url: ${TRANQUILO_BANK_URL:http://localhost:8090}
+  attempts: 3
+  wait-ms: 1000
