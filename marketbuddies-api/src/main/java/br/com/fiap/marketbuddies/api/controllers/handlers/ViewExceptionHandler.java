@@ -1,0 +1,34 @@
+package br.com.fiap.marketbuddies.api.controllers.handlers;
+
+import br.com.fiap.marketbuddies.api.exceptions.BusinessException;
+import br.com.fiap.marketbuddies.api.exceptions.NotFoundException;
+import br.com.fiap.marketbuddies.api.exceptions.OutOfStockException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.ModelAndView;
+
+// Exceções de domínio lançadas pelas telas viram páginas de erro estilizadas.
+// O resto (404 de rota, 500) fica com o BasicErrorController, que já usa templates/error/*.
+@ControllerAdvice
+public class ViewExceptionHandler {
+
+    @ExceptionHandler(NotFoundException.class)
+    public ModelAndView handleNotFound(NotFoundException ex) {
+        return page("error/404", HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler({OutOfStockException.class, BusinessException.class})
+    public ModelAndView handleBusiness(RuntimeException ex) {
+        HttpStatus status = ex instanceof OutOfStockException ? HttpStatus.CONFLICT : HttpStatus.UNPROCESSABLE_CONTENT;
+        return page("error", status, ex.getMessage());
+    }
+
+    private ModelAndView page(String view, HttpStatus status, String message) {
+        ModelAndView mav = new ModelAndView(view, status);
+        mav.addObject("status", status.value());
+        mav.addObject("error", status.getReasonPhrase());
+        mav.addObject("message", message);
+        return mav;
+    }
+}
