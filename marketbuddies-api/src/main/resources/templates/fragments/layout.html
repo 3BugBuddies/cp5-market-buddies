@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!--
+  Fragments comuns das telas. Uso:
+    <head th:replace="~{fragments/layout :: head('Produtos')}"></head>
+    <header th:replace="~{fragments/layout :: navbar('produtos')}"></header>   (produtos | gestao | dashboard | nenhum)
+    <div th:replace="~{fragments/layout :: alerts}"></div>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  O <body> de cada tela leva class="mb-root" e o script /js/marketbuddies.js no fim.
+-->
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · MarketBuddies'">MarketBuddies</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/img/favicon.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+    <link rel="stylesheet" th:href="@{/css/marketbuddies.css}">
+    <script th:src="@{/js/marketbuddies.js}" defer></script>
+</head>
+
+<body>
+
+<header th:fragment="navbar(active)" class="mb-navbar">
+    <div class="mb-container mb-navbar__inner">
+        <a class="mb-logo" th:href="@{/}" aria-label="MarketBuddies — início">
+            <img th:src="@{/img/logo-white.svg}" alt="MarketBuddies">
+        </a>
+        <button class="mb-btn mb-btn--ghost-dark mb-btn--icon mb-navbar__menu" type="button"
+                aria-label="Abrir menu" aria-expanded="false">
+            <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+        <nav class="mb-navbar__links" aria-label="Principal">
+            <a th:href="@{/products}" th:classappend="${active == 'produtos'} ? 'is-active'">Produtos</a>
+            <th:block sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/products}" th:classappend="${active == 'gestao'} ? 'is-active'">Gerenciar produtos</a>
+                <a th:href="@{/admin/dashboard}" th:classappend="${active == 'dashboard'} ? 'is-active'">Dashboard</a>
+            </th:block>
+        </nav>
+        <div class="mb-navbar__user">
+            <!-- ADMIN não compra (Q7): o carrinho só aparece para visitante e cliente -->
+            <a sec:authorize="!hasRole('ADMIN')" class="mb-btn mb-btn--ghost-dark mb-btn--icon mb-navbar__cart"
+               th:href="@{/cart}" aria-label="Carrinho" title="Carrinho">
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"></circle><circle cx="17" cy="19" r="2"></circle><path d="M17 17H6V3H4"></path><path d="M6 5l14 1-1 7H6"></path></svg>
+                <span class="mb-navbar__count" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span>
+            </a>
+            <th:block sec:authorize="isAnonymous()">
+                <a class="mb-btn mb-btn--outline-dark" th:href="@{/login}">Entrar</a>
+                <a class="mb-btn mb-btn--on-dark" th:href="@{/signup}">Criar conta</a>
+            </th:block>
+            <th:block sec:authorize="isAuthenticated()">
+                <span class="mb-navbar__who">
+                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="10" r="3"></circle><path d="M6.2 18.8a6 6 0 0 1 11.6 0"></path></svg>
+                    <span sec:authentication="name">usuario@marketbuddies.com</span>
+                </span>
+                <span sec:authorize="hasRole('ADMIN')" class="mb-badge mb-badge--admin">ADMIN</span>
+                <span sec:authorize="hasRole('CUSTOMER')" class="mb-badge mb-badge--client">CLIENTE</span>
+                <!-- POST com _csrf (o Thymeleaf injeta o campo oculto no th:action) -->
+                <form th:action="@{/logout}" method="post" style="display: contents">
+                    <button class="mb-btn mb-btn--outline-dark mb-btn--sm" type="submit">
+                        <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2"></path><path d="M9 12h12l-3-3M18 15l3-3"></path></svg>Sair
+                    </button>
+                </form>
+            </th:block>
+        </div>
+    </div>
+</header>
+
+<div th:fragment="alerts" class="mb-stack" style="margin-bottom: var(--mb-space-4)"
+     th:if="${success != null or error != null}">
+    <div th:if="${success != null}" class="mb-alert mb-alert--success" role="status">
+        <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9 12l2 2 4-4"></path></svg>
+        <span th:text="${success}">Tudo certo.</span>
+    </div>
+    <div th:if="${error != null}" class="mb-alert mb-alert--danger" role="alert">
+        <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+        <span th:text="${error}">Algo deu errado.</span>
+    </div>
+</div>
+
+<footer th:fragment="footer" class="mb-footer">
+    <div class="mb-container mb-footer__inner">
+        <img th:src="@{/img/logo-white.svg}" alt="">
+        <span>© 2026 MarketBuddies — projeto acadêmico FIAP</span>
+    </div>
+</footer>
+
+</body>
+</html>
