@@ -7,6 +7,29 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 
 ---
 
+## Índice
+
+- [Deploy](#deploy)
+- [Integrantes do Grupo](#integrantes-do-grupo)
+- [Arquitetura](#arquitetura)
+- [Configuração do Projeto — Spring Initializr](#configuração-do-projeto--spring-initializr)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Como Executar](#como-executar)
+- [Segurança — Spring Security + JWT](#segurança--spring-security--jwt)
+- [Tratamento de Erros](#tratamento-de-erros)
+- [Mensageria — RabbitMQ](#mensageria--rabbitmq)
+- [E-mail de Confirmação](#e-mail-de-confirmação)
+- [Variáveis de Ambiente](#variáveis-de-ambiente)
+- [Credenciais de Teste](#credenciais-de-teste)
+- [Modelo de Dados](#modelo-de-dados)
+- [Telas da Aplicação](#telas-da-aplicação)
+- [Testes com Postman](#testes-com-postman)
+- [Painel do RabbitMQ e Testes Internos](#painel-do-rabbitmq-e-testes-internos)
+- [Dashboard da Gerência](#dashboard-da-gerência)
+- [Tecnologias Utilizadas](#tecnologias-utilizadas)
+
+---
+
 ## Deploy
 
 | Recurso | URL |
@@ -351,6 +374,40 @@ A conta de cliente é criada pelo seed (nome "Ana Souza"). A tela de login mostr
 ![Diagrama ER](assets/diagrama-er.png)
 
 <!-- print pendente: assets/banco-tabelas.png (as 5 tabelas no PostgreSQL) -->
+
+---
+
+## Telas da Aplicação
+
+Prints do deploy no Railway, na ordem do fluxo de compra e depois da gerência. Clique numa imagem para ver em tamanho real.
+
+<table>
+  <tr>
+    <td align="center" valign="top"><a href="assets/tela-landing.png"><img src="assets/tela-landing.png" alt="Landing page" width="280"></a><br><sub>Landing page</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-cadastro.png"><img src="assets/tela-cadastro.png" alt="Cadastro com erro de validação" width="280"></a><br><sub>Cadastro com erro de validação</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-vitrine.png"><img src="assets/tela-vitrine.png" alt="Vitrine com fotos e filtros" width="280"></a><br><sub>Vitrine com fotos e filtros</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/tela-detalhe.png"><img src="assets/tela-detalhe.png" alt="Detalhe do produto em oferta" width="280"></a><br><sub>Detalhe do produto em oferta</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-carrinho-preview.png"><img src="assets/tela-carrinho-preview.png" alt="Preview do carrinho no hover" width="280"></a><br><sub>Preview do carrinho no hover</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-carrinho.png"><img src="assets/tela-carrinho.png" alt="Carrinho do visitante" width="280"></a><br><sub>Carrinho do visitante</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/tela-checkout.png"><img src="assets/tela-checkout.png" alt="Revisar e pagar" width="280"></a><br><sub>Revisar e pagar</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-pedido-aprovado.png"><img src="assets/tela-pedido-aprovado.png" alt="Pagamento confirmado" width="280"></a><br><sub>Pagamento confirmado</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-pedido-recusado.png"><img src="assets/tela-pedido-recusado.png" alt="Pagamento recusado" width="280"></a><br><sub>Pagamento recusado</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/tela-meus-pedidos.png"><img src="assets/tela-meus-pedidos.png" alt="Meus pedidos (cliente)" width="280"></a><br><sub>Meus pedidos (cliente)</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-gestao.png"><img src="assets/tela-gestao.png" alt="Gestão de produtos (ADMIN)" width="280"></a><br><sub>Gestão de produtos (ADMIN)</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-modal-editar.png"><img src="assets/tela-modal-editar.png" alt="Modal de edição com preço calculado" width="280"></a><br><sub>Modal de edição com preço calculado</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/tela-admin-pedidos.png"><img src="assets/tela-admin-pedidos.png" alt="Pedidos da gerência com filtro" width="280"></a><br><sub>Pedidos da gerência com filtro</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-403.png"><img src="assets/tela-403.png" alt="Página 403 para o cliente" width="280"></a><br><sub>Página 403 para o cliente</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-celular.png"><img src="assets/tela-celular.png" alt="Vitrine no celular (390 px)" width="280"></a><br><sub>Vitrine no celular (390 px)</sub></td>
+  </tr>
+</table>
 
 ---
 
