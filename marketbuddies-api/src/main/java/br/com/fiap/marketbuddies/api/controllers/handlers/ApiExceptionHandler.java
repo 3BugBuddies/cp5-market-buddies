@@ -10,6 +10,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
@@ -56,17 +57,30 @@ public class ApiExceptionHandler {
         return build(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage(), request, null);
     }
 
+    // Login da API com credencial errada (AuthApiController).
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex,
+                                                                    HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "Usuário ou senha inválidos", request, null);
+    }
+
     private ResponseEntity<Map<String, Object>> build(HttpStatus status, String message,
                                                       HttpServletRequest request, Map<String, String> errors) {
+        return ResponseEntity.status(status).body(body(status, message, request.getRequestURI(), errors));
+    }
+
+    // Corpo único dos erros da API; o SecurityConfig usa o mesmo para o 401/403 dos filtros.
+    public static Map<String, Object> body(HttpStatus status, String message, String path,
+                                           Map<String, String> errors) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", status.value());
         body.put("error", status.getReasonPhrase());
         body.put("message", message);
-        body.put("path", request.getRequestURI());
+        body.put("path", path);
         if (errors != null && !errors.isEmpty()) {
             body.put("errors", errors);
         }
-        return ResponseEntity.status(status).body(body);
+        return body;
     }
 }

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Criar conta')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('nenhum')}"></header>
+<main class="mb-page" style="flex: 1">
+    <div class="mb-container" style="display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch">
+        <section class="mb-hero mb-on-dark" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; min-height: 560px">
+            <img th:src="@{/img/logo-white.svg}" alt="MarketBuddies" style="height: 40px; width: auto; align-self: flex-start">
+            <div style="display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1">
+                <h1 class="mb-hero__title">Crie sua conta em um minuto.</h1>
+                <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; color: var(--mb-nav-link)">
+                    <li>Finalize compras com pagamento pelo Tranquilo Bank.</li>
+                    <li>Receba a confirmação do pagamento por e-mail.</li>
+                    <li>Seu carrinho fica guardado enquanto você se cadastra.</li>
+                </ul>
+            </div>
+            <svg class="mb-hero__deco" viewBox="0 0 240 160" style="right: -40px; bottom: -30px; width: 240px; height: 160px" aria-hidden="true">
+                <circle cx="90" cy="80" r="72" style="fill: var(--mb-blue-600)"></circle>
+                <circle cx="150" cy="80" r="72" style="fill: var(--mb-red-600); fill-opacity: 0.9"></circle>
+            </svg>
+        </section>
+
+        <section style="flex: 0 1 400px; min-width: 0; display: flex; align-items: center">
+            <form class="mb-card" th:action="@{/signup}" th:object="${signUpDto}" method="post" novalidate
+                  style="width: 100%; display: flex; flex-direction: column; gap: 16px">
+                <div>
+                    <h2 style="margin: 0 0 4px">Criar conta</h2>
+                    <p style="margin: 0; color: var(--mb-ink-600); font-size: var(--mb-fs-sm)">Toda conta nova é de cliente.</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="cd-nome">Nome completo</label>
+                    <input class="mb-input" id="cd-nome" th:field="*{fullName}" th:errorclass="mb-input--error" autocomplete="name">
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}">Informe seu nome completo</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="cd-email">E-mail</label>
+                    <input class="mb-input" id="cd-email" type="email" th:field="*{email}" th:errorclass="mb-input--error" autocomplete="email">
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}">Informe um e-mail válido</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="cd-senha">Senha</label>
+                    <div class="mb-password">
+                        <input class="mb-input" id="cd-senha" type="password" th:field="*{password}" th:errorclass="mb-input--error" autocomplete="new-password">
+                        <button class="mb-btn mb-btn--ghost" type="button" aria-label="Mostrar senha" title="Mostrar senha"><svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"></circle><path d="M22 12c-2.7 4.7-6 7-10 7s-7.3-2.3-10-7c2.7-4.7 6-7 10-7s7.3 2.3 10 7"></path></svg></button>
+                    </div>
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}">A senha precisa ter no mínimo 6 caracteres</p>
+                    <p class="mb-field__hint" th:unless="${#fields.hasErrors('password')}">Mínimo de 6 caracteres</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="cd-conf">Confirmar senha</label>
+                    <input class="mb-input" id="cd-conf" type="password" th:field="*{confirmPassword}" th:errorclass="mb-input--error" autocomplete="new-password">
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}">As senhas não conferem</p>
+                </div>
+                <button class="mb-btn mb-btn--primary mb-btn--block" type="submit">Criar conta</button>
+                <p style="margin: 0; text-align: center; font-size: var(--mb-fs-sm); color: var(--mb-ink-600)">Já tem conta? <a th:href="@{/login}" style="font-weight: 700">Entrar</a></p>
+            </form>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

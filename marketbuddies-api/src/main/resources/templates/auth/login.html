@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Entrar')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('nenhum')}"></header>
+<main class="mb-page" style="flex: 1">
+    <div class="mb-container" style="display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch">
+        <section class="mb-hero mb-on-dark" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; min-height: 460px">
+            <img th:src="@{/img/logo-white.svg}" alt="MarketBuddies" style="height: 40px; width: auto; align-self: flex-start">
+            <div style="display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1">
+                <h1 class="mb-hero__title">Bem-vindo de volta!</h1>
+                <p class="mb-hero__lead" style="margin: 0">Entre para acompanhar seus pedidos e finalizar sua compra.</p>
+            </div>
+            <svg class="mb-hero__deco" viewBox="0 0 240 160" style="right: -40px; bottom: -30px; width: 240px; height: 160px" aria-hidden="true">
+                <circle cx="90" cy="80" r="72" style="fill: var(--mb-blue-600)"></circle>
+                <circle cx="150" cy="80" r="72" style="fill: var(--mb-red-600); fill-opacity: 0.9"></circle>
+            </svg>
+        </section>
+
+        <section style="flex: 0 1 400px; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 16px">
+            <!-- POST /login é do AuthViewController; o th:action injeta o campo _csrf -->
+            <form class="mb-card" th:action="@{/login}" method="post" style="width: 100%; display: flex; flex-direction: column; gap: 16px">
+                <div>
+                    <h2 style="margin: 0 0 4px">Entrar</h2>
+                    <p style="margin: 0; color: var(--mb-ink-600); font-size: var(--mb-fs-sm)">Use o e-mail da sua conta.</p>
+                </div>
+
+                <div th:if="${param.error != null}" class="mb-alert mb-alert--danger" role="alert">
+                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg>
+                    <span>E-mail ou senha incorretos. Confira e tente de novo.</span>
+                </div>
+                <div th:if="${param.registered != null}" class="mb-alert mb-alert--success" role="status">
+                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9 12l2 2 4-4"></path></svg>
+                    <span>Conta criada! Entre com seu e-mail e senha.</span>
+                </div>
+                <div th:if="${param.logout != null}" class="mb-alert mb-alert--success" role="status">
+                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M9 12l2 2 4-4"></path></svg>
+                    <span>Você saiu da sua conta.</span>
+                </div>
+                <div th:if="${param.redirect != null and param.error == null}" class="mb-alert mb-alert--info" role="status">
+                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01M11 12h1v4h1"></path></svg>
+                    <span th:if="${#strings.startsWith(param.redirect[0], '/checkout')}">Entre para finalizar a compra. Seu carrinho continua salvo.</span>
+                    <span th:unless="${#strings.startsWith(param.redirect[0], '/checkout')}">Entre para continuar de onde parou.</span>
+                </div>
+
+                <input type="hidden" name="redirect" th:if="${param.redirect != null}" th:value="${param.redirect[0]}">
+
+                <div class="mb-field">
+                    <label class="mb-label" for="lg-email">E-mail</label>
+                    <input class="mb-input" id="lg-email" type="email" name="email" autocomplete="username" required autofocus>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="lg-senha">Senha</label>
+                    <div class="mb-password">
+                        <input class="mb-input" id="lg-senha" type="password" name="senha" autocomplete="current-password" required>
+                        <button class="mb-btn mb-btn--ghost" type="button" aria-label="Mostrar senha" title="Mostrar senha"><svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"></circle><path d="M22 12c-2.7 4.7-6 7-10 7s-7.3-2.3-10-7c2.7-4.7 6-7 10-7s7.3 2.3 10 7"></path></svg></button>
+                    </div>
+                </div>
+                <button class="mb-btn mb-btn--primary mb-btn--block" type="submit">Entrar</button>
+                <p style="margin: 0; text-align: center; font-size: var(--mb-fs-sm); color: var(--mb-ink-600)">Ainda não tem conta? <a th:href="@{/signup}" style="font-weight: 700">Criar conta</a></p>
+            </form>
+
+            <!-- Conta de teste à mostra para a correção (só a do cliente; a do ADMIN fica no .txt de entrega) -->
+            <div class="mb-alert mb-alert--info" role="note">
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>
+                <span><strong>Conta de teste</strong><br>
+                    E-mail: <code>cliente@marketbuddies.com</code><br>
+                    Senha: <code>cliente123</code></span>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

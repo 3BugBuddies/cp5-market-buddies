@@ -55,7 +55,7 @@
             <th:block sec:authorize="isAuthenticated()">
                 <span class="mb-navbar__who">
                     <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="10" r="3"></circle><path d="M6.2 18.8a6 6 0 0 1 11.6 0"></path></svg>
-                    <span sec:authentication="name">usuario@marketbuddies.com</span>
+                    <span sec:authentication="principal.fullName">Ana Souza</span>
                 </span>
                 <span sec:authorize="hasRole('ADMIN')" class="mb-badge mb-badge--admin">ADMIN</span>
                 <span sec:authorize="hasRole('CUSTOMER')" class="mb-badge mb-badge--client">CLIENTE</span>
