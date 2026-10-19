@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--/*
+  E-mail de confirmação de pagamento (EmailService.sendConfirmation).
+  Feito para clientes de e-mail: layout em <table>, CSS só inline, largura máxima de 600px,
+  sem JS, sem fonte nem CSS externos. As cores são os tokens --mb-* de static/css/marketbuddies.css.
+  Os valores chegam formatados em pt-BR pelo EmailService.
+*/-->
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|Pagamento confirmado do pedido #${orderId}|">Pagamento confirmado</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f5f7fb;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f7fb;">
+    <tr>
+        <td align="center" style="padding:24px 12px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="width:100%; max-width:600px; background-color:#ffffff; border:1px solid #dde3ec; border-radius:12px; border-collapse:separate; overflow:hidden; font-family:Arial, Helvetica, sans-serif; color:#1b2333;">
+
+                <!--/* Faixa da marca (--mb-blue-700 com a borda --mb-red-600, como a navbar da loja) */-->
+                <tr>
+                    <td style="background-color:#1a4fa0; border-bottom:4px solid #e1251b; padding:20px 24px;">
+                        <span style="font-size:22px; line-height:28px; font-weight:bold; color:#ffffff; letter-spacing:-0.3px;">Market<span style="color:#ff8a82;">Buddies</span></span>
+                    </td>
+                </tr>
+
+                <!--/* Saudação */-->
+                <tr>
+                    <td style="padding:28px 24px 8px 24px;">
+                        <p style="margin:0 0 16px 0; font-size:16px; line-height:24px; color:#4a5568;"
+                           th:text="|Olá, ${customerName}|">Olá, Cliente</p>
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 12px 0;">
+                            <tr>
+                                <td style="background-color:#e4f4ea; color:#176b3c; font-size:12px; line-height:16px; font-weight:bold; padding:4px 10px; border-radius:999px;">
+                                    &#10003; Aprovado pelo Tranquilo Bank
+                                </td>
+                            </tr>
+                        </table>
+                        <h1 style="margin:0 0 8px 0; font-size:24px; line-height:30px; font-weight:bold; color:#1b2333;">Pagamento confirmado</h1>
+                        <p style="margin:0; font-size:15px; line-height:22px; color:#4a5568;">
+                            O pagamento do seu pedido <strong style="color:#1b2333;" th:text="|#${orderId}|">#1</strong> foi aprovado. Confira o resumo abaixo.
+                        </p>
+                    </td>
+                </tr>
+
+                <!--/* Itens */-->
+                <tr>
+                    <td style="padding:20px 24px 4px 24px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; font-size:14px; line-height:20px;">
+                            <tr>
+                                <th align="left" style="padding:8px 8px 8px 0; border-bottom:2px solid #dde3ec; font-size:12px; font-weight:bold; color:#5f6b7e; text-transform:uppercase;">Produto</th>
+                                <th align="center" style="padding:8px 4px; border-bottom:2px solid #dde3ec; font-size:12px; font-weight:bold; color:#5f6b7e; text-transform:uppercase;">Qtd.</th>
+                                <th align="right" style="padding:8px 4px; border-bottom:2px solid #dde3ec; font-size:12px; font-weight:bold; color:#5f6b7e; text-transform:uppercase;">Unit.</th>
+                                <th align="right" style="padding:8px 0 8px 8px; border-bottom:2px solid #dde3ec; font-size:12px; font-weight:bold; color:#5f6b7e; text-transform:uppercase;">Subtotal</th>
+                            </tr>
+                            <tr th:each="item : ${items}">
+                                <td style="padding:10px 8px 10px 0; border-bottom:1px solid #dde3ec; color:#1b2333;" th:text="${item.name()}">Produto</td>
+                                <td align="center" style="padding:10px 4px; border-bottom:1px solid #dde3ec; color:#4a5568;" th:text="${item.quantity()}">1</td>
+                                <td align="right" style="padding:10px 4px; border-bottom:1px solid #dde3ec; color:#4a5568; white-space:nowrap;" th:text="${item.unitPrice()}">R$ 0,00</td>
+                                <td align="right" style="padding:10px 0 10px 8px; border-bottom:1px solid #dde3ec; color:#1b2333; white-space:nowrap;" th:text="${item.subtotal()}">R$ 0,00</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" align="right" style="padding:14px 8px 0 0; font-size:15px; font-weight:bold; color:#1b2333;">Total</td>
+                                <td align="right" style="padding:14px 0 0 8px; font-size:18px; font-weight:bold; color:#1a4fa0; white-space:nowrap;" th:text="${total}">R$ 0,00</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!--/* Dados do pagamento (--mb-blue-50) */-->
+                <tr>
+                    <td style="padding:20px 24px 4px 24px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f6fd; border:1px solid #d3e1f7; border-radius:8px; border-collapse:separate;">
+                            <tr>
+                                <td style="padding:14px 16px; font-size:14px; line-height:22px; color:#4a5568;">
+                                    Código de autorização do Tranquilo Bank<br>
+                                    <strong style="font-family:'Courier New', Courier, monospace; font-size:15px; color:#0e2f66; word-break:break-all;" th:text="${authorizationCode}">TB-000000</strong>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding:0 16px 14px 16px; font-size:14px; line-height:22px; color:#4a5568;">
+                                    Pago em <strong style="color:#0e2f66;" th:text="${paidAt}">01/01/2026 12:00</strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!--/* Botão (--mb-btn--primary) */-->
+                <tr>
+                    <td align="center" style="padding:24px 24px 28px 24px;">
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td align="center" bgcolor="#1a4fa0" style="background-color:#1a4fa0; border-radius:8px;">
+                                    <a th:href="${orderUrl}" href="#" target="_blank"
+                                       style="display:inline-block; padding:12px 28px; font-size:15px; line-height:20px; font-weight:bold; color:#ffffff; text-decoration:none; border-radius:8px;">Ver meu pedido</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!--/* Rodapé (--mb-ink-900, como o footer da loja) */-->
+                <tr>
+                    <td align="center" style="background-color:#1b2333; padding:18px 24px; font-size:14px; line-height:20px; color:#ffffff;">
+                        Obrigado por comprar no MarketBuddies!
+                        <br>
+                        <span style="font-size:12px; color:#8a94a6;">Este e-mail foi enviado porque você fez um pedido na loja.</span>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
