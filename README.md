@@ -429,7 +429,7 @@ A coleção está em [`postman/marketbuddies.postman_collection.json`](postman/m
 
 O login do cliente já vai com a conta de exemplo (`cliente@marketbuddies.com` / `cliente123`), e o do ADMIN com o e-mail `3bugbuddies@gmail.com`.
 
-3. Rode a coleção na ordem, ou pelo **Collection Runner**: a pasta **1. Autenticação** grava os tokens usados no resto.
+3. Rode a coleção na ordem: a pasta **1. Autenticação** grava os tokens usados no resto.
 
 ### Endpoints da API
 
@@ -445,7 +445,42 @@ O login do cliente já vai com a conta de exemplo (`cliente@marketbuddies.com` /
 
 A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela grava o `accessToken` da resposta em `{{token}}` (o login do ADMIN grava em `{{adminToken}}`). As demais requests usam `Authorization: Bearer {{token}}`. A request de compra grava o `id` do pedido em `{{orderId}}`, que a consulta do pedido reaproveita. Cada request tem testes de status.
 
-### Requests
+### Prints
+
+Executados no Postman contra o deploy. Clique numa imagem para ver em tamanho real. No print de e-mails, o `errorMessage` mostra o timeout do SMTP, que o plano Trial do Railway bloqueia.
+
+<table>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-cadastro.png"><img src="assets/postman-cadastro.png" alt="Cadastro de cliente (201)" width="280"></a><br><sub>Cadastro de cliente (201)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-cadastro-duplicado.png"><img src="assets/postman-cadastro-duplicado.png" alt="E-mail duplicado (409)" width="280"></a><br><sub>E-mail duplicado (409)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-login.png"><img src="assets/postman-login.png" alt="Login do cliente (200)" width="280"></a><br><sub>Login do cliente (200)</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-me.png"><img src="assets/postman-me.png" alt="Me (200)" width="280"></a><br><sub>Me (200)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produtos.png"><img src="assets/postman-produtos.png" alt="Listar produtos (200)" width="280"></a><br><sub>Listar produtos (200)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produto-detalhe.png"><img src="assets/postman-produto-detalhe.png" alt="Detalhe do produto (200)" width="280"></a><br><sub>Detalhe do produto (200)</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-produto-invalido.png"><img src="assets/postman-produto-invalido.png" alt="Criar produto inválido (400)" width="280"></a><br><sub>Criar produto inválido (400)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produto-criar.png"><img src="assets/postman-produto-criar.png" alt="Criar produto, ADMIN (201)" width="280"></a><br><sub>Criar produto, ADMIN (201)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produto-criado.png"><img src="assets/postman-produto-criado.png" alt="Detalhe do produto criado (200)" width="280"></a><br><sub>Detalhe do produto criado (200)</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-produto-excluir.png"><img src="assets/postman-produto-excluir.png" alt="Excluir produto, ADMIN (204)" width="280"></a><br><sub>Excluir produto, ADMIN (204)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produto-excluido.png"><img src="assets/postman-produto-excluido.png" alt="Detalhe do excluído (404)" width="280"></a><br><sub>Detalhe do excluído (404)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-compra-aprovada.png"><img src="assets/postman-compra-aprovada.png" alt="Compra aprovada (202)" width="280"></a><br><sub>Compra aprovada (202)</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-compra-recusada.png"><img src="assets/postman-compra-recusada.png" alt="Compra acima de R$ 500 (202)" width="280"></a><br><sub>Compra acima de R$ 500 (202)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-meus-pedidos.png"><img src="assets/postman-meus-pedidos.png" alt="Meus pedidos (200)" width="280"></a><br><sub>Meus pedidos (200)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-emails.png"><img src="assets/postman-emails.png" alt="E-mails enviados, ADMIN (200)" width="280"></a><br><sub>E-mails enviados, ADMIN (200)</sub></td>
+  </tr>
+</table>
+
+### Requests e respostas
+
+<details>
+<summary>Ver o corpo e a resposta JSON de cada request</summary>
 
 **1. Login (cliente)** — `POST {{api}}/api/auth/login`, resposta `200`.
 
@@ -581,41 +616,9 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 }
 ```
 
-**Collection Runner** — todos os testes da coleção passando.
-
 > Os JSONs acima são os de `postman/exemplos.md`. Datas, ids e códigos de autorização mudam a cada execução.
 
-### Prints
-
-Executados no Postman contra o deploy. Clique numa imagem para ver em tamanho real. No print de e-mails, o `errorMessage` mostra o timeout do SMTP, que o plano Trial do Railway bloqueia.
-
-<table>
-  <tr>
-    <td align="center" valign="top"><a href="assets/postman-cadastro.png"><img src="assets/postman-cadastro.png" alt="Cadastro de cliente (201)" width="280"></a><br><sub>Cadastro de cliente (201)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-cadastro-duplicado.png"><img src="assets/postman-cadastro-duplicado.png" alt="E-mail duplicado (409)" width="280"></a><br><sub>E-mail duplicado (409)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-login.png"><img src="assets/postman-login.png" alt="Login do cliente (200)" width="280"></a><br><sub>Login do cliente (200)</sub></td>
-  </tr>
-  <tr>
-    <td align="center" valign="top"><a href="assets/postman-me.png"><img src="assets/postman-me.png" alt="Me (200)" width="280"></a><br><sub>Me (200)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-produtos.png"><img src="assets/postman-produtos.png" alt="Listar produtos (200)" width="280"></a><br><sub>Listar produtos (200)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-produto-detalhe.png"><img src="assets/postman-produto-detalhe.png" alt="Detalhe do produto (200)" width="280"></a><br><sub>Detalhe do produto (200)</sub></td>
-  </tr>
-  <tr>
-    <td align="center" valign="top"><a href="assets/postman-produto-invalido.png"><img src="assets/postman-produto-invalido.png" alt="Criar produto inválido (400)" width="280"></a><br><sub>Criar produto inválido (400)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-produto-criar.png"><img src="assets/postman-produto-criar.png" alt="Criar produto, ADMIN (201)" width="280"></a><br><sub>Criar produto, ADMIN (201)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-produto-criado.png"><img src="assets/postman-produto-criado.png" alt="Detalhe do produto criado (200)" width="280"></a><br><sub>Detalhe do produto criado (200)</sub></td>
-  </tr>
-  <tr>
-    <td align="center" valign="top"><a href="assets/postman-produto-excluir.png"><img src="assets/postman-produto-excluir.png" alt="Excluir produto, ADMIN (204)" width="280"></a><br><sub>Excluir produto, ADMIN (204)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-produto-excluido.png"><img src="assets/postman-produto-excluido.png" alt="Detalhe do excluído (404)" width="280"></a><br><sub>Detalhe do excluído (404)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-compra-aprovada.png"><img src="assets/postman-compra-aprovada.png" alt="Compra aprovada (202)" width="280"></a><br><sub>Compra aprovada (202)</sub></td>
-  </tr>
-  <tr>
-    <td align="center" valign="top"><a href="assets/postman-compra-recusada.png"><img src="assets/postman-compra-recusada.png" alt="Compra acima de R$ 500 (202)" width="280"></a><br><sub>Compra acima de R$ 500 (202)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-meus-pedidos.png"><img src="assets/postman-meus-pedidos.png" alt="Meus pedidos (200)" width="280"></a><br><sub>Meus pedidos (200)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-emails.png"><img src="assets/postman-emails.png" alt="E-mails enviados, ADMIN (200)" width="280"></a><br><sub>E-mails enviados, ADMIN (200)</sub></td>
-  </tr>
-</table>
+</details>
 
 ---
 
