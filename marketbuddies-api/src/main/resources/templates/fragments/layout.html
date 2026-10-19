@@ -48,6 +48,8 @@
                 <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"></circle><circle cx="17" cy="19" r="2"></circle><path d="M17 17H6V3H4"></path><path d="M6 5l14 1-1 7H6"></path></svg>
                 <span class="mb-navbar__count" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span>
             </a>
+            <!-- Conta: no celular (até 640 px) vai para o menu aberto, porque não cabe na barra -->
+            <div class="mb-navbar__account">
             <th:block sec:authorize="isAnonymous()">
                 <a class="mb-btn mb-btn--outline-dark" th:href="@{/login}">Entrar</a>
                 <a class="mb-btn mb-btn--on-dark" th:href="@{/signup}">Criar conta</a>
@@ -66,6 +68,7 @@
                     </button>
                 </form>
             </th:block>
+            </div>
         </div>
     </div>
 </header>

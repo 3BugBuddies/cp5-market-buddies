@@ -7,7 +7,8 @@
     <div class="mb-container" style="display: flex; flex-wrap: wrap; gap: 32px; align-items: stretch">
         <section class="mb-hero mb-on-dark" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; min-height: 460px">
             <img th:src="@{/img/logo-white.svg}" alt="MarketBuddies" style="height: 40px; width: auto; align-self: flex-start">
-            <div style="display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1">
+            <!-- margin-bottom deixa o texto acabar acima dos círculos decorativos (até 130 px do fundo) -->
+            <div style="display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 1; max-width: 40ch; margin-bottom: 110px">
                 <h1 class="mb-hero__title">Bem-vindo de volta!</h1>
                 <p class="mb-hero__lead" style="margin: 0">Entre para acompanhar seus pedidos e finalizar sua compra.</p>
             </div>
@@ -60,12 +61,31 @@
                 <p style="margin: 0; text-align: center; font-size: var(--mb-fs-sm); color: var(--mb-ink-600)">Ainda não tem conta? <a th:href="@{/signup}" style="font-weight: 700">Criar conta</a></p>
             </form>
 
-            <!-- Conta de teste à mostra para a correção (só a do cliente; a do ADMIN fica no .txt de entrega) -->
-            <div class="mb-alert mb-alert--info" role="note">
-                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>
-                <span><strong>Conta de teste</strong><br>
-                    E-mail: <code>cliente@marketbuddies.com</code><br>
-                    Senha: <code>cliente123</code></span>
+            <!-- Contas de teste à mostra para a correção. Os valores vêm do model (AuthViewController):
+                 ADMIN do AdminProperties (ADMIN_EMAIL/ADMIN_PASSWORD), cliente do DataSeeder -->
+            <div class="mb-card mb-test-accounts" role="note" aria-labelledby="lg-test-title">
+                <h3 id="lg-test-title" style="margin: 0; font-size: var(--mb-fs-md)">Contas de teste</h3>
+                <div class="mb-test-account" th:each="acc : ${testAccounts}">
+                    <div class="mb-test-account__head">
+                        <span class="mb-badge" th:classappend="${acc.label == 'ADMIN'} ? 'mb-badge--admin' : 'mb-badge--client'" th:text="${acc.label}">Cliente</span>
+                        <button class="mb-btn mb-btn--ghost mb-btn--sm" type="button" data-use-account
+                                th:data-email="${acc.email}" th:data-password="${acc.password}"
+                                th:aria-label="'Usar a conta ' + ${acc.label} + ' no formulário'">Usar esta conta</button>
+                    </div>
+                    <div class="mb-test-account__row">
+                        <span class="mb-muted">E-mail</span>
+                        <code th:text="${acc.email}">email</code>
+                        <button class="mb-btn mb-btn--ghost mb-btn--icon mb-btn--sm" type="button" th:data-copy="${acc.email}"
+                                th:aria-label="'Copiar e-mail da conta ' + ${acc.label}" title="Copiar"><svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg></button>
+                    </div>
+                    <div class="mb-test-account__row">
+                        <span class="mb-muted">Senha</span>
+                        <code th:text="${acc.password}">senha</code>
+                        <button class="mb-btn mb-btn--ghost mb-btn--icon mb-btn--sm" type="button" th:data-copy="${acc.password}"
+                                th:aria-label="'Copiar senha da conta ' + ${acc.label}" title="Copiar"><svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg></button>
+                    </div>
+                </div>
+                <p class="mb-copy-status" role="status" aria-live="polite" data-copy-status></p>
             </div>
         </section>
     </div>

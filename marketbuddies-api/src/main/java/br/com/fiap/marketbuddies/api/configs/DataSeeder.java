@@ -22,6 +22,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
+    // Conta de cliente de teste, à mostra na tela de login (AuthViewController) para a correção.
+    public static final String TEST_CUSTOMER_EMAIL = "cliente@marketbuddies.com";
+    public static final String TEST_CUSTOMER_PASSWORD = "cliente123";
+
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,7 +44,7 @@ public class DataSeeder implements CommandLineRunner {
         }
         userRepository.saveAll(List.of(
                 user("Gerência", adminProperties.email(), adminProperties.password(), Role.ADMIN),
-                user("Ana Souza", "cliente@marketbuddies.com", "cliente123", Role.CUSTOMER)
+                user("Ana Souza", TEST_CUSTOMER_EMAIL, TEST_CUSTOMER_PASSWORD, Role.CUSTOMER)
         ));
         log.info("Seed: ADMIN {} e cliente de teste criados", adminProperties.email());
     }

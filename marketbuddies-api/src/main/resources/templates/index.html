@@ -51,33 +51,17 @@
             </div>
         </section>
 
-        <!-- Cards estáticos por enquanto (preços do seed); a T5 liga aos produtos do banco -->
-        <section style="display: flex; flex-direction: column; gap: 16px">
+        <!-- Produtos em oferta e com estoque, do banco (ProductService.listOffers) -->
+        <section th:unless="${offers.isEmpty()}" style="display: flex; flex-direction: column; gap: 16px">
             <div class="mb-page-header" style="margin: 0">
                 <h2 style="margin: 0">Ofertas da semana</h2>
                 <a class="mb-link-arrow" th:href="@{/products}">Ver todos os produtos
                     <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></a>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px">
-                <article class="mb-product"
-                         th:each="p : ${ {
-                            {'Café torrado e moído 500 g', 'Mercearia', '−7%', 'R$ 18,71', 'R$ 20,12', '18'},
-                            {'Maçã gala (kg)', 'Hortifruti', '−10%', 'R$ 9,81', 'R$ 10,90', '21'},
-                            {'Água mineral sem gás 1,5 L', 'Bebidas', '−15%', 'R$ 2,14', 'R$ 2,52', '120'},
-                            {'Pão de forma integral', 'Padaria', '−10%', 'R$ 8,49', 'R$ 9,43', '9'}
-                         } }">
-                    <a class="mb-product__media" th:href="@{/products}" th:attr="aria-label=${p[0]}">
-                        <span class="mb-badge mb-badge--offer" th:text="${p[2]}">−7%</span>
-                        <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
-                    </a>
-                    <div class="mb-product__body">
-                        <span class="mb-product__cat" th:text="${p[1]}">Mercearia</span>
-                        <a class="mb-product__name" th:href="@{/products}" th:text="${p[0]}">Café</a>
-                        <span class="mb-product__price mb-product__price--offer"><th:block th:text="${p[3]}">R$ 18,71</th:block><span class="mb-product__old" th:text="${p[4]}">R$ 20,12</span></span>
-                        <span class="mb-product__stock" th:text="'Estoque: ' + ${p[5]} + ' un.'">Estoque: 18 un.</span>
-                        <a class="mb-btn mb-btn--buy mb-btn--block" th:href="@{/products}">Ver na loja</a>
-                    </div>
-                </article>
+            <div class="mb-grid">
+                <th:block th:each="p : ${offers}">
+                    <article th:replace="~{fragments/product-card :: card(${p}, false)}"></article>
+                </th:block>
             </div>
         </section>
     </div>

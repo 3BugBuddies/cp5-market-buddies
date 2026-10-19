@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Gerenciar produtos')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('gestao')}"></header>
+<main class="mb-page" style="flex: 1">
+    <div class="mb-container" style="display: flex; flex-direction: column; gap: 16px">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="mb-page-header" style="margin: 0">
+            <h1>Gerenciar produtos</h1>
+            <button class="mb-btn mb-btn--primary" type="button" data-product-new>
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Adicionar produto
+            </button>
+        </div>
+        <div class="mb-table-wrap">
+            <table class="mb-table">
+                <thead>
+                <tr>
+                    <th>ID</th><th>Nome</th><th>Categoria</th><th class="mb-num">Custo</th><th class="mb-num">Markup</th>
+                    <th class="mb-num">Preço</th><th>Oferta</th><th class="mb-num">Estoque</th><th class="mb-num">Ações</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${products.isEmpty()}">
+                    <td colspan="9" class="mb-muted" style="text-align: center">Nenhum produto cadastrado.</td>
+                </tr>
+                <tr th:each="p : ${products}">
+                    <td th:text="${p.id}">1</td>
+                    <td style="font-weight: 500" th:text="${p.name}">Banana prata (kg)</td>
+                    <td th:text="${p.category.label}">Hortifruti</td>
+                    <td class="mb-num" th:text="'R$ ' + ${#numbers.formatDecimal(p.cost, 1, 'POINT', 2, 'COMMA')}">R$ 4,20</td>
+                    <td class="mb-num" th:text="${p.markupPercentage.stripTrailingZeros().toPlainString()} + '%'">40%</td>
+                    <td class="mb-num" th:text="'R$ ' + ${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')}">R$ 5,88</td>
+                    <td><span th:if="${p.onSale}" class="mb-badge mb-badge--offer"
+                              th:text="'−' + ${p.discountPercentage.stripTrailingZeros().toPlainString()} + '%'">−10%</span></td>
+                    <td class="mb-num">
+                        <span th:if="${p.stock == 0}" class="mb-badge mb-badge--danger">0 · esgotado</span>
+                        <span th:if="${p.stock > 0 and p.stock <= 5}" class="mb-badge mb-badge--warning" th:text="${p.stock} + ' · baixo'">4 · baixo</span>
+                        <span th:if="${p.stock > 5}" th:text="${p.stock}">32</span>
+                    </td>
+                    <td>
+                        <div class="mb-table__actions">
+                            <a class="mb-btn mb-btn--ghost mb-btn--sm" th:href="@{/products/{id}(id=${p.id})}"
+                               th:aria-label="'Ver ' + ${p.name}" title="Ver">
+                                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"></circle><path d="M22 12c-2.7 4.7-6 7-10 7s-7.3-2.3-10-7c2.7-4.7 6-7 10-7s7.3 2.3 10 7"></path></svg>
+                            </a>
+                            <!-- data-*: o JS preenche o modal de edição com estes valores -->
+                            <button class="mb-btn mb-btn--secondary mb-btn--sm" type="button" title="Editar"
+                                    th:aria-label="'Editar ' + ${p.name}" data-product-edit
+                                    th:data-id="${p.id}" th:data-version="${p.version}" th:data-name="${p.name}"
+                                    th:data-category="${p.category.name()}" th:data-cost="${p.cost}"
+                                    th:data-markup="${p.markupPercentage}" th:data-discount="${p.discountPercentage}"
+                                    th:data-stock="${p.stock}" th:data-description="${p.description}">
+                                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.8 2.8 0 0 0-4-4L4 16v4"></path><path d="M13.5 6.5l4 4"></path></svg>
+                            </button>
+                            <button class="mb-btn mb-btn--danger mb-btn--sm" type="button" title="Excluir"
+                                    th:aria-label="'Excluir ' + ${p.name}" data-product-delete
+                                    th:data-id="${p.id}" th:data-name="${p.name}">
+                                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path></svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="mb-muted" style="margin: 0; font-size: var(--mb-fs-xs)">Preço = custo × (1 + markup). Oferta é um desconto sobre esse preço.</p>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<!-- Modal de criação/edição. Erro de validação ou conflito de versão re-renderiza a tela com data-aberto="true" -->
+<dialog id="product-modal" class="mb-modal" aria-labelledby="pm-title"
+        th:attr="data-aberto=${modalOpen} ? 'true' : 'false'">
+    <form class="mb-modal__panel" method="post" novalidate data-product-form th:object="${productForm}"
+          th:data-base-action="@{/admin/products}"
+          th:action="${productForm.id == null} ? @{/admin/products} : @{/admin/products/{id}(id=${productForm.id})}">
+        <div class="mb-modal__header">
+            <div>
+                <h2 class="mb-modal__title" id="pm-title" th:text="*{id} == null ? 'Novo produto' : 'Editar produto'">Novo produto</h2>
+                <div class="mb-modal__sub">Preço calculado a partir de custo e markup</div>
+            </div>
+            <button class="mb-btn mb-btn--ghost mb-btn--icon mb-btn--sm" type="button" aria-label="Fechar" title="Fechar" data-dialog-close>
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+            </button>
+        </div>
+        <div class="mb-modal__body" style="display: flex; flex-direction: column; gap: 16px">
+            <div th:if="${conflict != null}" class="mb-alert mb-alert--warning" role="alert" data-conflict>
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01"></path><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>
+                <span th:text="${conflict}">O produto mudou enquanto você editava.</span>
+            </div>
+            <input type="hidden" th:field="*{id}">
+            <input type="hidden" th:field="*{version}">
+            <div class="mb-form-grid">
+                <div class="mb-field">
+                    <label class="mb-label" for="pm-nome">Nome</label>
+                    <input class="mb-input" id="pm-nome" th:field="*{name}" th:errorclass="mb-input--error" maxlength="80">
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">Informe o nome do produto.</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="pm-cat">Categoria</label>
+                    <select class="mb-select" id="pm-cat" th:field="*{category}" th:errorclass="mb-input--error">
+                        <option th:each="c : ${categories}" th:value="${c.name()}" th:text="${c.label}">Hortifruti</option>
+                    </select>
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}">Escolha a categoria.</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="pm-custo">Custo (R$)</label>
+                    <input class="mb-input" id="pm-custo" type="number" step="0.01" inputmode="decimal"
+                           th:field="*{cost}" th:errorclass="mb-input--error" data-preview-input>
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('cost')}" th:errors="*{cost}">O custo deve ser maior que zero.</p>
+                    <p class="mb-field__hint" th:unless="${#fields.hasErrors('cost')}">Quanto o mercado paga ao fornecedor.</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="pm-mk">Markup (%)</label>
+                    <input class="mb-input" id="pm-mk" type="number" step="0.01" inputmode="decimal"
+                           th:field="*{markupPercentage}" th:errorclass="mb-input--error" data-preview-input>
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('markupPercentage')}" th:errors="*{markupPercentage}">Informe um markup de 0 a 500%.</p>
+                    <p class="mb-field__hint" th:unless="${#fields.hasErrors('markupPercentage')}">Margem sobre o custo.</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="pm-preco">Preço de venda (R$)</label>
+                    <input class="mb-input" id="pm-preco" readonly tabindex="-1" data-preview-price value="—">
+                    <p class="mb-field__hint">Calculado: custo × (1 + markup). Não é digitado.</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="pm-lucro">Lucro por unidade (R$)</label>
+                    <input class="mb-input" id="pm-lucro" readonly tabindex="-1" data-preview-profit value="—">
+                    <p class="mb-field__hint">Preço de venda − custo.</p>
+                </div>
+                <div class="mb-field">
+                    <label class="mb-label" for="pm-est">Estoque (un.)</label>
+                    <input class="mb-input" id="pm-est" type="number" step="1" min="0" inputmode="numeric"
+                           th:field="*{stock}" th:errorclass="mb-input--error">
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}">Informe um estoque inteiro, 0 ou mais.</p>
+                </div>
+                <div class="mb-field" style="gap: 8px">
+                    <span class="mb-label">Oferta</span>
+                    <!-- O checkbox não vai para o servidor: só mostra o desconto ou o zera (0 = sem oferta) -->
+                    <label class="mb-check" for="pm-oferta">
+                        <input type="checkbox" id="pm-oferta" data-offer-toggle
+                               th:checked="${productForm.discountPercentage != null and productForm.discountPercentage.signum() != 0}"> Em oferta
+                    </label>
+                    <div data-offer-fields style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end">
+                        <div class="mb-field" style="width: 120px">
+                            <label class="mb-label" for="pm-desc">Desconto (%)</label>
+                            <input class="mb-input" id="pm-desc" type="number" step="0.01" inputmode="decimal"
+                                   th:field="*{discountPercentage}" th:errorclass="mb-input--error" data-preview-input>
+                        </div>
+                        <span style="padding-bottom: 8px; font-size: var(--mb-fs-sm)">Sai por
+                            <strong style="color: var(--mb-red-600)" data-preview-offer>—</strong>
+                            <span class="mb-muted" style="text-decoration: line-through" data-preview-old></span></span>
+                    </div>
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('discountPercentage')}" th:errors="*{discountPercentage}">O desconto vai de 0 a 90%.</p>
+                </div>
+                <div class="mb-field mb-form-grid__full">
+                    <label class="mb-label" for="pm-descricao">Descrição</label>
+                    <textarea class="mb-textarea" id="pm-descricao" th:field="*{description}" th:errorclass="mb-input--error" maxlength="500"></textarea>
+                    <p class="mb-field__error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}">Até 500 caracteres.</p>
+                </div>
+            </div>
+        </div>
+        <div class="mb-modal__footer">
+            <button class="mb-btn mb-btn--danger mb-modal__danger" type="button" data-modal-delete
+                    th:hidden="${productForm.id == null}">Excluir</button>
+            <button class="mb-btn mb-btn--ghost" type="button" data-dialog-close>Cancelar</button>
+            <button class="mb-btn mb-btn--primary" type="submit">Salvar produto</button>
+        </div>
+    </form>
+</dialog>
+
+<!-- Confirmação de exclusão: o JS troca o action para /admin/products/{id}/delete -->
+<dialog id="delete-modal" class="mb-modal mb-modal--sm" role="alertdialog" aria-labelledby="pe-title">
+    <form class="mb-modal__panel" method="post" data-delete-form th:data-base-action="@{/admin/products}"
+          th:action="@{/admin/products/0/delete}">
+        <div class="mb-modal__header">
+            <div>
+                <h2 class="mb-modal__title" id="pe-title">Excluir <span data-delete-name>produto</span>?</h2>
+                <div class="mb-modal__sub">Essa ação não pode ser desfeita. Pedidos antigos continuam com o nome e o preço da compra.</div>
+            </div>
+        </div>
+        <div class="mb-modal__footer">
+            <button class="mb-btn mb-btn--ghost" type="button" data-dialog-close>Cancelar</button>
+            <button class="mb-btn mb-btn--danger" type="submit">Excluir produto</button>
+        </div>
+    </form>
+</dialog>
+</body>
+</html>
