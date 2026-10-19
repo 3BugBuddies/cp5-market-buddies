@@ -253,7 +253,9 @@ O `TranquiloBankClient` tenta **3 vezes**, com 1 segundo de espera entre elas. S
 
 O pedido nasce `AWAITING_PAYMENT`, com o estoque já reservado de forma atômica, e só é publicado na fila **depois do commit**. A resposta muda o status por um `update` condicional (`… where status = 'AWAITING_PAYMENT'`): resposta repetida ou concorrente recebe 0 linhas e é ignorada, sem segundo e-mail nem segunda devolução de estoque. Um job marca como REFUSED ("Tempo esgotado") o pedido que fica mais de 5 minutos sem resposta.
 
-<!-- print pendente: assets/worker-log.png (log do worker/banco com "APROVADO TB-…") -->
+
+
+![Log do worker no Railway (railway logs) com um pedido aprovado e outro recusado](assets/worker-log.png)
 
 ---
 
@@ -568,7 +570,9 @@ Painel no Railway: https://rabbitmq-production-e3dc.up.railway.app (usuário e s
 O enunciado pede "testes internos do RabbitMQ Monitor". Roteiro:
 
 1. **Publicar pelo painel:** em `payment-request-exchange`, "Publish message" com um `PaymentRequestDto` e routing key `payment-request-routing-key`. Esperado: uma mensagem chega em `payment-response-success-queue` (valor até R$ 500,00) ou em `payment-response-error-queue` (valor acima).
-   <!-- print pendente: assets/rabbitmq-publicar.png -->
+   
+
+   ![Publish message em payment-request-exchange no painel de produção](assets/rabbitmq-publicar.png)
 2. **Banco parado:** com o `tranquilo-bank` desligado, publicar de novo. Esperado: depois de 3 tentativas, uma mensagem em `payment-response-error-queue` com "Banco indisponível".
 3. **Resposta repetida:** reenviar na fila de sucesso a resposta de um pedido já aprovado. Esperado: nada muda na tela e nenhuma linha nova no banco (log "resposta ignorada").
 4. **Compra de ponta a ponta:** comprar pela tela e acompanhar os contadores das três filas.
