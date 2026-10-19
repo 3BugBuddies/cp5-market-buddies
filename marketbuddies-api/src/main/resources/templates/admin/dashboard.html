@@ -35,6 +35,8 @@
             <a class="mb-btn mb-btn--primary" th:href="@{/admin/products}">Gerenciar produtos</a>
         </div>
 
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
         <!-- KPIs -->
         <div class="mb-dash__kpis">
             <div class="mb-kpi">
@@ -170,10 +172,11 @@
                             <span th:case="*" style="color: var(--mb-ink-500)">—</span>
                         </td>
                         <td>
-                            <!-- T7: "Reenviar e-mail" (P5) vira um form POST /admin/orders/{id}/resend-email
-                                 quando o EmailService existir. Por ora o botão fica desabilitado. -->
-                            <button th:if="${o.canResendEmail}" type="button" class="mb-btn mb-btn--secondary mb-btn--sm"
-                                    disabled title="Disponível quando o envio de e-mail entrar (T7)">Reenviar e-mail</button>
+                            <!-- P5: pedido pago cujo último e-mail não foi SENT (falhou ou nunca saiu) -->
+                            <form th:if="${o.canResendEmail}" th:action="@{/admin/orders/{id}/resend-email(id=${o.id})}"
+                                  method="post" style="margin: 0">
+                                <button type="submit" class="mb-btn mb-btn--secondary mb-btn--sm">Reenviar e-mail</button>
+                            </form>
                         </td>
                     </tr>
                     </tbody>
