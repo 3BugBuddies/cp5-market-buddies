@@ -43,4 +43,32 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
              where p.id = :id
             """)
     int release(@Param("id") Long id, @Param("qty") int qty);
+
+    // --- Dashboard da gerência (T8) ---
+
+    interface StockRow {
+        String getName();
+
+        Integer getStock();
+    }
+
+    interface MarkupSummary {
+        Double getAverage();
+
+        Long getTotal();
+    }
+
+    @Query("select avg(p.markupPercentage) as average, count(p) as total from ProductEntity p")
+    MarkupSummary summarizeMarkup();
+
+    @Query("select p.name as name, p.stock as stock from ProductEntity p order by p.stock desc, p.name")
+    List<StockRow> findStockOverview();
+
+    @Query("""
+            select p.name as name, p.stock as stock
+              from ProductEntity p
+             where p.stock <= :limit
+             order by p.stock, p.name
+            """)
+    List<StockRow> findLowStock(@Param("limit") int limit);
 }

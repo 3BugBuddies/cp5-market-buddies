@@ -219,3 +219,52 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!window.matchMedia('(hover: hover)').matches) return;
+  document.querySelectorAll('[data-cart-preview]').forEach((wrapper) => {
+    const trigger = wrapper.querySelector('[aria-controls]');
+    const panel = trigger && document.getElementById(trigger.getAttribute('aria-controls'));
+    if (!panel) return;
+    let closeTimer = null;
+    let skipFocusOpen = false;
+    const open = () => {
+      clearTimeout(closeTimer);
+      panel.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+    };
+    const close = () => {
+      clearTimeout(closeTimer);
+      panel.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+    };
+    const closeSoon = () => {
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(close, 250);
+    };
+    wrapper.addEventListener('pointerenter', (event) => {
+      if (event.pointerType !== 'touch') open();
+    });
+    wrapper.addEventListener('pointerleave', (event) => {
+      if (event.pointerType !== 'touch' && !wrapper.contains(document.activeElement)) closeSoon();
+    });
+    wrapper.addEventListener('focusin', () => {
+      if (skipFocusOpen) {
+        skipFocusOpen = false;
+        return;
+      }
+      open();
+    });
+    wrapper.addEventListener('focusout', (event) => {
+      if (!wrapper.contains(event.relatedTarget)) closeSoon();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || panel.hidden) return;
+      close();
+      if (wrapper.contains(document.activeElement) && document.activeElement !== trigger) {
+        skipFocusOpen = true;
+        trigger.focus();
+      }
+    });
+  });
+});
