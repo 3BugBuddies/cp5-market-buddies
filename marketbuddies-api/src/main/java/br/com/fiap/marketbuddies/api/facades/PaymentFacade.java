@@ -6,7 +6,6 @@ import br.com.fiap.marketbuddies.api.dtos.PaymentResponseDto;
 import br.com.fiap.marketbuddies.api.enums.OrderOrigin;
 import br.com.fiap.marketbuddies.api.enums.OrderStatus;
 import br.com.fiap.marketbuddies.api.enums.StatusEmail;
-import br.com.fiap.marketbuddies.api.events.OrderCreatedEvent;
 import br.com.fiap.marketbuddies.api.exceptions.BusinessException;
 import br.com.fiap.marketbuddies.api.producers.PaymentRequestProducer;
 import br.com.fiap.marketbuddies.api.services.EmailService;
@@ -15,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.AmqpException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
@@ -39,24 +36,18 @@ public class PaymentFacade {
     // P1: motivo do pedido que ficou tempo demais aguardando o banco.
     public static final String EXPIRED_REASON = "Tempo esgotado";
 
-    // Cria o pedido com a reserva de estoque. A mensagem para o worker sai em onOrderCreated, depois do commit.
+    /** Publica o pedido de pagamento só depois do commit de {@code createOrder}. */
     public OrderDto requestPayment(Long customerId, List<OrderItemRequestDto> items, OrderOrigin origin) {
-        return orderService.createOrder(customerId, items, origin);
-    }
-
-    // AFTER_COMMIT: o worker só recebe pedido que já está gravado; se a transação desfez, nada é publicado.
-    // Se o RabbitMQ estiver fora do ar, o pedido já foi gravado: registrar o erro em vez de devolver 500
-    // para uma compra que existe. O pedido fica aguardando e o job de expiração (P1, T7) o recusa e devolve o estoque.
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void onOrderCreated(OrderCreatedEvent event) {
-        Long orderId = event.paymentRequest().orderId();
+        OrderService.CreatedOrder created = orderService.createOrder(customerId, items, origin);
+        Long orderId = created.order().id();
         try {
-            paymentRequestProducer.send(event.paymentRequest());
+            paymentRequestProducer.send(created.paymentRequest());
             log.info("Pedido {} publicado na payment-request-queue", orderId);
         } catch (AmqpException ex) {
             log.error("Pedido {} gravado, mas a publicação no RabbitMQ falhou; o job de expiração vai recusá-lo",
                     orderId, ex);
         }
+        return created.order();
     }
 
     // Fila de sucesso: grava APPROVED e, só se o status mudou agora, envia o e-mail (depois do commit).

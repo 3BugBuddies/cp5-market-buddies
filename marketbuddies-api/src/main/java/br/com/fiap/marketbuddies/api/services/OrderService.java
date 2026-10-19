@@ -13,7 +13,6 @@ import br.com.fiap.marketbuddies.api.enums.OrderOrigin;
 import br.com.fiap.marketbuddies.api.enums.OrderStatus;
 import br.com.fiap.marketbuddies.api.enums.Role;
 import br.com.fiap.marketbuddies.api.enums.StatusEmail;
-import br.com.fiap.marketbuddies.api.events.OrderCreatedEvent;
 import br.com.fiap.marketbuddies.api.exceptions.BusinessException;
 import br.com.fiap.marketbuddies.api.exceptions.NotFoundException;
 import br.com.fiap.marketbuddies.api.exceptions.OutOfStockException;
@@ -23,7 +22,6 @@ import br.com.fiap.marketbuddies.api.repositories.ProductRepository;
 import br.com.fiap.marketbuddies.api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,13 +41,14 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final EmailRepository emailRepository;
-    private final ApplicationEventPublisher eventPublisher;
+
+    public record CreatedOrder(OrderDto order, PaymentRequestDto paymentRequest) {
+    }
 
     // Cria o pedido AWAITING_PAYMENT e reserva o estoque numa transação só (D17).
     // Se faltar estoque em qualquer item, OutOfStockException desfaz tudo: nenhum item baixa.
-    // O evento sai dentro da transação e a mensagem só é publicada depois do commit (PaymentFacade).
     @Transactional
-    public OrderDto createOrder(Long customerId, List<OrderItemRequestDto> requestedItems, OrderOrigin origin) {
+    public CreatedOrder createOrder(Long customerId, List<OrderItemRequestDto> requestedItems, OrderOrigin origin) {
         UserEntity customer = userRepository.findById(customerId)
                 .orElseThrow(() -> new NotFoundException("Cliente não encontrado"));
         if (customer.getRole() != Role.CUSTOMER) {
@@ -104,9 +103,8 @@ public class OrderService {
         order.setTotalAmount(total.setScale(2, RoundingMode.HALF_UP));
 
         OrderEntity saved = orderRepository.save(order);
-        eventPublisher.publishEvent(new OrderCreatedEvent(PaymentRequestDto.from(saved)));
         log.info("Pedido {} criado ({}) · {} · R$ {}", saved.getId(), origin, customer.getEmail(), saved.getTotalAmount());
-        return OrderDto.from(saved);
+        return new CreatedOrder(OrderDto.from(saved), PaymentRequestDto.from(saved));
     }
 
     // Pagamento aprovado. Update condicional (só sai de AWAITING_PAYMENT): devolve true só para a primeira
