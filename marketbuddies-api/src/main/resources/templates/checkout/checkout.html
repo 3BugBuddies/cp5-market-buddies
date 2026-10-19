@@ -26,10 +26,17 @@
                 <h2 class="mb-card__title">Itens</h2>
                 <div th:each="it : ${cart.items}"
                      style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--mb-line)">
-                    <div style="display: flex; flex-direction: column; min-width: 0">
-                        <span style="font-weight: 500" th:text="${it.name}">Café torrado e moído 500 g</span>
-                        <span style="font-size: var(--mb-fs-xs); color: var(--mb-ink-600)"
-                              th:text="${it.quantity + ' × R$ ' + #numbers.formatDecimal(it.unitPrice, 1, 'POINT', 2, 'COMMA')}">1 × R$ 18,71</span>
+                    <div class="mb-line-item">
+                        <img th:if="${it.imagePath != null}" class="mb-thumb" th:src="@{${it.imagePath}}" th:alt="${it.name}"
+                             loading="lazy" width="40" height="40">
+                        <span th:unless="${it.imagePath != null}" class="mb-thumb mb-thumb--empty" aria-hidden="true">
+                            <svg class="mb-icon" viewBox="0 0 24 24"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
+                        </span>
+                        <div style="display: flex; flex-direction: column; min-width: 0">
+                            <span style="font-weight: 500" th:text="${it.name}">Café torrado e moído 500 g</span>
+                            <span style="font-size: var(--mb-fs-xs); color: var(--mb-ink-600)"
+                                  th:text="${it.quantity + ' × R$ ' + #numbers.formatDecimal(it.unitPrice, 1, 'POINT', 2, 'COMMA')}">1 × R$ 18,71</span>
+                        </div>
                     </div>
                     <span style="font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap"
                           th:text="${'R$ ' + #numbers.formatDecimal(it.subtotal, 1, 'POINT', 2, 'COMMA')}">R$ 18,71</span>

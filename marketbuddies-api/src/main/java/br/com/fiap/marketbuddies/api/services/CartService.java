@@ -85,6 +85,7 @@ public class CartService {
             int quantity = entry.getValue().quantity();
             BigDecimal subtotal = product.getFinalPrice().multiply(BigDecimal.valueOf(quantity));
             items.add(new CartDto.Item(product.getId(), product.getName(), product.getCategory().getLabel(),
+                    product.getImagePath(),
                     product.getFinalPrice(), product.getPrice(), product.isOnSale(), quantity, product.getStock(),
                     subtotal));
             total = total.add(subtotal);

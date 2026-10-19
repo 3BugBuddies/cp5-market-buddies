@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 // version vai no campo oculto do modal de edição (P3).
 // Ordem alfabética explícita: a mesma do JSON da classe com @Data. Sem a lista, o Jackson 3 põe os
 // componentes do record primeiro, na ordem do construtor (alphabetic = true não basta).
-@JsonPropertyOrder({"category", "description", "discountPercentage", "finalPrice", "id", "name", "onSale", "price",
+@JsonPropertyOrder({"category", "description", "discountPercentage", "finalPrice", "id", "imagePath", "name", "onSale", "price",
         "stock"})
 public record ProductDto(
         Long id,
@@ -25,6 +25,7 @@ public record ProductDto(
         BigDecimal discountPercentage,
         Integer stock,
         Boolean onSale,
+        String imagePath,
         @JsonIgnore BigDecimal cost,
         @JsonIgnore BigDecimal markupPercentage,
         @JsonIgnore Long version) {
@@ -41,6 +42,7 @@ public record ProductDto(
                 product.getDiscountPercentage(),
                 product.getStock(),
                 product.isOnSale(),
+                product.getImagePath(),
                 withInternalData ? product.getCost() : null,
                 withInternalData ? product.getMarkupPercentage() : null,
                 withInternalData ? product.getVersion() : null);

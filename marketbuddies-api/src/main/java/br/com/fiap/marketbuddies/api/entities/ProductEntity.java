@@ -44,6 +44,9 @@ public class ProductEntity {
     @Column(nullable = false)
     private Integer stock;
 
+    @Column(length = 120)
+    private String imagePath;
+
     // Trava otimista (P3): reserve/release no repositório também incrementam a versão.
     @Version
     private Long version;

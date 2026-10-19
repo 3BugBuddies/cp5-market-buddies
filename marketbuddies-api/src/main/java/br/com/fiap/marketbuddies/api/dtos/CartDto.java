@@ -24,6 +24,7 @@ public record CartDto(
             Long productId,
             String name,
             String categoryLabel,
+            String imagePath,
             BigDecimal unitPrice,
             BigDecimal regularPrice,
             Boolean onSale,

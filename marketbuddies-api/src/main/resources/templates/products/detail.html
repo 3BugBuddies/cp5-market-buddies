@@ -17,7 +17,9 @@
                 <span th:if="${p.onSale and p.stock > 0}" class="mb-badge mb-badge--offer" style="position: absolute; top: 16px; left: 16px"
                       th:text="'Oferta −' + ${p.discountPercentage.stripTrailingZeros().toPlainString()} + '%'">Oferta −7%</span>
                 <span th:if="${p.stock == 0}" class="mb-badge mb-badge--danger" style="position: absolute; top: 16px; left: 16px">Esgotado</span>
-                <svg class="mb-icon" viewBox="0 0 24 24" style="width: 120px; height: 120px; stroke-width: 1.2" aria-hidden="true"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
+                <img th:if="${p.imagePath != null}" class="mb-detail__img" th:src="@{${p.imagePath}}" th:alt="${p.name}"
+                     loading="lazy" width="600" height="600">
+                <svg th:unless="${p.imagePath != null}" class="mb-icon" viewBox="0 0 24 24" style="width: 120px; height: 120px; stroke-width: 1.2" aria-hidden="true"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
             </div>
             <section style="flex: 1 1 360px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
                 <span style="font-size: var(--mb-fs-sm); color: var(--mb-ink-600)" th:text="${p.category.label}">Mercearia</span>
