@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-// Carrinho público (visitante e cliente). ADMIN não compra (Q7): é mandado de volta para a vitrine.
-// A vitrine e o detalhe do produto (T5) enviam POST /cart/add com productId e quantity.
 @Controller
 @RequestMapping("/cart")
 @RequiredArgsConstructor
@@ -62,7 +60,6 @@ public class CartViewController {
         }
     }
 
-    // Visitante chega como null (o principal anônimo não é AuthUser).
     private static boolean isAdmin(AuthUser user) {
         return user != null && user.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }

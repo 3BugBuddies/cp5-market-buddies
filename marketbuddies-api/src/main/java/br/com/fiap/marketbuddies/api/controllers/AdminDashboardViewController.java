@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-// Dashboard da gerência. O acesso só de ADMIN vem da regra /admin/** do SecurityConfig.
 @Controller
 @RequiredArgsConstructor
 public class AdminDashboardViewController {
@@ -27,8 +26,6 @@ public class AdminDashboardViewController {
         return "admin/dashboard";
     }
 
-    // P5: "Reenviar e-mail" da tabela de últimas compras. Cada tentativa grava uma linha nova em TB_EMAILS;
-    // o resultado volta como flash na própria tela, em vez da página de erro.
     @PostMapping("/admin/orders/{id}/resend-email")
     public String resendEmail(@PathVariable Long id, RedirectAttributes redirect) {
         try {

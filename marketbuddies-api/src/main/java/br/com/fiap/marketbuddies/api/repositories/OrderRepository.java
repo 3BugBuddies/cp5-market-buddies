@@ -16,8 +16,7 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
-    // Idempotência: só muda o pedido que ainda aguarda pagamento. Quem recebe 1 segue
-    // (e-mail ou devolução de estoque); resposta repetida ou concorrente recebe 0 e é ignorada.
+    /** Update condicional: devolve 0 se o pedido já foi respondido. */
     @Modifying(clearAutomatically = true)
     @Query("""
             update OrderEntity o
@@ -34,15 +33,10 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
                 @Param("reason") String reason,
                 @Param("now") LocalDateTime now);
 
-    // Pedidos parados em AWAITING_PAYMENT, para o job de expiração (P1).
     List<OrderEntity> findByStatusAndCreatedAtBefore(OrderStatus status, LocalDateTime limit);
 
-    // Pedido com cliente, itens e produto dos itens já carregados: a tela, a API e o e-mail
-    // leem tudo fora da transação (open-in-view desligado).
     @EntityGraph(attributePaths = {"customer", "items", "items.product"})
     Optional<OrderEntity> findDetailedById(Long id);
-
-    // --- Dashboard da gerência (T8) ---
 
     interface StatusCount {
         OrderStatus getStatus();
@@ -62,7 +56,6 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
         OrderStatus getStatus();
     }
 
-    // Pedidos por status criados no intervalo [from, to).
     @Query("""
             select o.status as status, count(o) as total
               from OrderEntity o
@@ -71,7 +64,6 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
             """)
     List<StatusCount> countByStatusBetween(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
-    // Últimas compras, de qualquer status, com o nome do cliente (um join, sem carregar a entidade).
     @Query("""
             select o.id as id, c.fullName as customerName, o.createdAt as createdAt,
                    o.totalAmount as totalAmount, o.status as status

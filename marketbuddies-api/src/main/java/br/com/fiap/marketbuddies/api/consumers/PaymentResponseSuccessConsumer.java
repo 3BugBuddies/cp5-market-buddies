@@ -9,8 +9,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-// Como o PagamentoResponseSucessoConsumidor do professor: recebe a resposta e entrega para a facade.
-// O JSON já chega convertido pelo tipo do parâmetro (JacksonJsonMessageConverter).
 @Slf4j
 @Component
 @RequiredArgsConstructor

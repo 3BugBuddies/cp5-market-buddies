@@ -10,8 +10,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-// Tudo o que a tela /admin/dashboard mostra, já agregado pelo DashboardService.
-// Campos nulos significam "sem base para calcular" (ex.: variação contra ontem sem venda ontem).
 public record DashboardDto(
         LocalDate today,
         Kpis kpis,
@@ -57,7 +55,6 @@ public record DashboardDto(
             boolean canResendEmail) {
     }
 
-    // Séries dos gráficos em listas simples, para o Thymeleaf serializar no <script th:inline="javascript">.
     public Map<String, Object> charts() {
         Map<String, Object> charts = new LinkedHashMap<>();
         charts.put("dayLabels", days.stream().map(DayPoint::label).toList());

@@ -8,8 +8,6 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 
-// Nome, categoria, preço e custo são a foto do momento da compra (D8):
-// editar ou excluir o produto depois não muda o que foi vendido.
 @Data
 @Entity
 @Table(name = "TB_ORDER_ITEMS")
@@ -25,7 +23,6 @@ public class OrderItemEntity {
     @EqualsAndHashCode.Exclude
     private OrderEntity order;
 
-    // Fica nulo quando o produto é excluído (P2).
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     @ToString.Exclude
@@ -42,11 +39,9 @@ public class OrderItemEntity {
     @Column(nullable = false)
     private Integer quantity;
 
-    // Preço final do dia (com oferta).
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal unitPrice;
 
-    // Custo do dia (D8).
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal unitCost;
 }

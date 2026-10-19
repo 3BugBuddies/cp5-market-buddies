@@ -40,7 +40,6 @@
                 <p style="margin: 0; color: var(--mb-ink-600); max-width: 60ch"
                    th:text="${p.description != null} ? ${p.description} : 'Produto selecionado pelo MarketBuddies.'">Descrição</p>
 
-                <!-- POST /cart/add é do carrinho (T6). ADMIN não compra (Q7) -->
                 <form sec:authorize="!hasRole('ADMIN')" th:if="${p.stock > 0}" th:action="@{/cart/add}" method="post"
                       style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-top: 8px">
                     <input type="hidden" name="productId" th:value="${p.id}">

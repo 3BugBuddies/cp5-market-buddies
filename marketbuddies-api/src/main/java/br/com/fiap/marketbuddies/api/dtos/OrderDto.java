@@ -11,11 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// Resposta única do pedido (POST /api/orders, GET /api/orders/{id} e a tela do pedido).
-// Campos da resposta do banco ficam nulos enquanto o pedido aguarda pagamento.
-// statusEmail: status do último e-mail do pedido (OrderService.getOrder); nulo enquanto não houver e-mail.
-// Ordem alfabética explícita: a mesma do JSON da classe com @Data. Sem a lista, o Jackson 3 põe os
-// componentes do record primeiro, na ordem do construtor (alphabetic = true não basta).
+/** Ordem explícita: sem ela o Jackson 3 põe os componentes do record na ordem do construtor. */
 @JsonPropertyOrder({"authorizationCode", "createdAt", "customerEmail", "id", "items", "origin", "refusalReason",
         "respondedAt", "status", "statusEmail", "totalAmount"})
 public record OrderDto(
@@ -31,7 +27,6 @@ public record OrderDto(
         StatusEmail statusEmail,
         List<Item> items) {
 
-    // Chamar dentro da transação: lê o cliente e os itens do pedido.
     public static OrderDto from(OrderEntity order) {
         return from(order, null);
     }

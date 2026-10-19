@@ -16,8 +16,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// Regras do carrinho da sessão: limita ao estoque ao adicionar e alterar, e monta a visão com preço e
-// estoque atuais. A reserva de verdade só acontece no pagamento (OrderService.createOrder).
 @Service
 @RequiredArgsConstructor
 public class CartService {
@@ -25,7 +23,6 @@ public class CartService {
     private final CartSession cart;
     private final ProductRepository productRepository;
 
-    // Resultado de uma ação no carrinho, para o flash da tela: type = success | warning | error.
     public record Feedback(String type, String message) {
         static Feedback success(String message) { return new Feedback("success", message); }
         static Feedback warning(String message) { return new Feedback("warning", message); }
@@ -41,13 +38,10 @@ public class CartService {
     }
 
     @Transactional(readOnly = true)
-    // Devolve null quando a quantidade foi aceita como pedida (o stepper não precisa de aviso).
     public Feedback update(Long productId, int quantity) {
         if (quantity < 1) {
             return remove(productId);
         }
-        // Sem Optional.map aqui: store devolve null quando aceita a quantidade, e o map trataria isso
-        // como produto ausente, removendo o item recém-atualizado.
         ProductEntity product = productRepository.findById(productId).orElse(null);
         if (product == null) {
             cart.remove(productId);
@@ -62,8 +56,7 @@ public class CartService {
         return Feedback.success(name + " removido do carrinho.");
     }
 
-    // Visão do carrinho com preço e estoque de agora. Produto excluído sai do carrinho com aviso (P4).
-    // Quantidade acima do estoque NÃO é cortada aqui: o item aparece marcado e a reserva no pagamento decide.
+    /** Quantidade acima do estoque não é cortada aqui: a reserva no pagamento decide. */
     @Transactional(readOnly = true)
     public CartDto view() {
         return build(true);
@@ -108,7 +101,6 @@ public class CartService {
         return new CartDto(items, totalQuantity, total, notices);
     }
 
-    // Itens do carrinho no formato do pedido, para o checkout.
     public List<OrderItemRequestDto> toOrderItems(CartDto view) {
         return view.items().stream()
                 .map(i -> new OrderItemRequestDto(i.productId(), i.quantity()))
@@ -119,8 +111,6 @@ public class CartService {
         cart.clear();
     }
 
-    // "Tentar de novo" (D20): troca o carrinho pelos itens do pedido recusado, com as mesmas regras do add
-    // (limita ao estoque de agora). Devolve só os avisos; produto excluído do catálogo vira aviso e fica de fora.
     @Transactional(readOnly = true)
     public List<String> refill(List<RetryItemDto> items) {
         cart.clear();

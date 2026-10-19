@@ -20,7 +20,7 @@ public class AuthorizationService {
 
 	private final BigDecimal approvalLimit;
 
-	// Construtor explícito: @Value não é copiado por @RequiredArgsConstructor para o parâmetro.
+	/** Construtor explícito: {@code @RequiredArgsConstructor} não copia o {@code @Value} para o parâmetro. */
 	public AuthorizationService(@Value("${tranquilo-bank.approval-limit}") BigDecimal approvalLimit) {
 		this.approvalLimit = approvalLimit;
 	}

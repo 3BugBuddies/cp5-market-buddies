@@ -3,8 +3,6 @@
 <head th:replace="~{fragments/layout :: head(${'Pedido #' + order.id})}"></head>
 <body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
 <header th:replace="~{fragments/layout :: navbar('nenhum')}"></header>
-<!-- Três estados numa view só (aguardando · aprovado · recusado), como as telas PedidoAguardando,
-     PedidoAprovado e PedidoRecusado do canvas. -->
 <main class="mb-page" style="flex: 1"
       th:with="total=${'R$ ' + #numbers.formatDecimal(order.totalAmount, 1, 'POINT', 2, 'COMMA')}">
     <div class="mb-container">
@@ -12,7 +10,6 @@
             <div th:replace="~{fragments/layout :: alerts}"></div>
         </div>
 
-        <!-- Aguardando: marketbuddies.js consulta /orders/{id}/status a cada 2 s e recarrega quando o banco responde -->
         <section th:if="${order.status.name() == 'AWAITING_PAYMENT'}" class="mb-card"
                  style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px"
                  th:attr="data-order-status-url=@{/orders/{id}/status(id=${order.id})}">
@@ -42,7 +39,6 @@
             </div>
         </section>
 
-        <!-- Aprovado -->
         <section th:if="${order.status.name() == 'APPROVED'}" class="mb-card"
                  style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px"
                  th:attr="data-order-status-url=${order.statusEmail == null} ? @{/orders/{id}/status(id=${order.id})} : null,
@@ -87,7 +83,6 @@
             </div>
         </section>
 
-        <!-- Recusado (pelo banco ou por tempo esgotado, P1) -->
         <section th:if="${order.status.name() == 'REFUSED'}" class="mb-card"
                  style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
             <div style="display: flex; gap: 16px; align-items: center">
@@ -115,7 +110,6 @@
                 </div>
             </div>
             <div style="display: flex; gap: 12px; flex-wrap: wrap">
-                <!-- O botão desabilita no envio para um duplo clique não remontar o carrinho duas vezes -->
                 <form th:action="@{/orders/{id}/retry(id=${order.id})}" method="post" style="display: contents"
                       onsubmit="this.querySelector('button[type=submit]').disabled = true">
                     <button class="mb-btn mb-btn--buy" type="submit">Tentar de novo</button>

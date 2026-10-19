@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<!--
-  Fragments comuns das telas. Uso:
-    <head th:replace="~{fragments/layout :: head('Produtos')}"></head>
-    <header th:replace="~{fragments/layout :: navbar('produtos')}"></header>   (produtos | gestao | dashboard | nenhum)
-    <div th:replace="~{fragments/layout :: alerts}"></div>
-    <footer th:replace="~{fragments/layout :: footer}"></footer>
-  O <body> de cada tela leva class="mb-root" e o script /js/marketbuddies.js no fim.
--->
 
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
@@ -42,7 +34,6 @@
             </th:block>
         </nav>
         <div class="mb-navbar__user">
-            <!-- ADMIN não compra (Q7): o carrinho só aparece para visitante e cliente -->
             <div sec:authorize="!hasRole('ADMIN')" class="mb-cart-preview" data-cart-preview>
             <a class="mb-btn mb-btn--ghost-dark mb-btn--icon mb-navbar__cart"
                th:href="@{/cart}" aria-label="Carrinho" title="Carrinho"
@@ -88,7 +79,6 @@
                 </th:block>
             </div>
             </div>
-            <!-- Conta: no celular (até 640 px) vai para o menu aberto, porque não cabe na barra -->
             <div class="mb-navbar__account">
             <th:block sec:authorize="isAnonymous()">
                 <a class="mb-btn mb-btn--outline-dark" th:href="@{/login}">Entrar</a>
@@ -101,7 +91,6 @@
                 </span>
                 <span sec:authorize="hasRole('ADMIN')" class="mb-badge mb-badge--admin">ADMIN</span>
                 <span sec:authorize="hasRole('CUSTOMER')" class="mb-badge mb-badge--client">CLIENTE</span>
-                <!-- POST com _csrf (o Thymeleaf injeta o campo oculto no th:action) -->
                 <form th:action="@{/logout}" method="post" style="display: contents">
                     <button class="mb-btn mb-btn--outline-dark mb-btn--sm" type="submit">
                         <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-2"></path><path d="M9 12h12l-3-3M18 15l3-3"></path></svg>Sair

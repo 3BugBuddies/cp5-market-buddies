@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
-// Como o PagamentoRequestProducer do professor, mas envia o objeto e deixa o conversor JSON
-// (JacksonJsonMessageConverter, Jackson 3) serializar, igual aos producers do worker.
 @Component
 @RequiredArgsConstructor
 public class PaymentRequestProducer {

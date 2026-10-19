@@ -3,7 +3,6 @@ package br.com.fiap.marketbuddies.api.dtos;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-// Um item do POST /api/orders (e do carrinho, quando o checkout cria o pedido).
 public record OrderItemRequestDto(
         @NotNull(message = "Informe o produto")
         Long productId,

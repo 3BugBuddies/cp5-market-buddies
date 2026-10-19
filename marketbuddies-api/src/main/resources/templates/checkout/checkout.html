@@ -61,8 +61,6 @@
                     <span>Total</span>
                     <span th:text="${'R$ ' + #numbers.formatDecimal(cart.total, 1, 'POINT', 2, 'COMMA')}">R$ 34,83</span>
                 </div>
-                <!-- O total visto vai junto (P4): se o preço mudar até o clique, o pedido não é criado.
-                     O botão desabilita no envio para um duplo clique não mandar dois POST -->
                 <form th:action="@{/checkout}" method="post" style="display: contents"
                       onsubmit="this.querySelector('button[type=submit]').disabled = true">
                     <input type="hidden" name="expectedTotal" th:value="${cart.total}">

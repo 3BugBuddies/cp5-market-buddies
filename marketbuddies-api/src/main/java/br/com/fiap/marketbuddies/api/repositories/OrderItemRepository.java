@@ -15,15 +15,9 @@ import java.util.List;
 
 public interface OrderItemRepository extends JpaRepository<OrderItemEntity, Long> {
 
-    // P2: antes de excluir um produto já vendido, solta o vínculo dos itens.
-    // O pedido antigo continua legível pela cópia de nome, categoria, preço e custo.
     @Modifying(clearAutomatically = true)
     @Query("update OrderItemEntity i set i.product = null where i.product.id = :productId")
     int detachProduct(@Param("productId") Long productId);
-
-    // --- Dashboard da gerência (T8) ---
-    // Vendas e lucro saem da foto gravada no item (unitPrice e unitCost do momento da compra),
-    // nunca do custo atual do produto. Só contam pedidos APPROVED.
 
     interface DailyTotals {
         LocalDate getRefDate();

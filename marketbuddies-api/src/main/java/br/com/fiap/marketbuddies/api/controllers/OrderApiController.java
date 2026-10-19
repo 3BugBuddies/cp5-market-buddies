@@ -19,9 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
 
-// Compra pela API (Postman). Bearer de CUSTOMER (SecurityConfig); o comprador é o dono do token.
-// 202 Accepted: o pedido foi criado e aguarda o banco. 400 corpo inválido e 409 sem estoque vêm do ApiExceptionHandler.
-// GET /api/orders/{id}: o dono ou o ADMIN; pedido de outro cliente responde 404, como se não existisse.
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor

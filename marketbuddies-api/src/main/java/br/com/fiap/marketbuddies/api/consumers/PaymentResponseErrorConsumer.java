@@ -9,7 +9,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
-// Como o PagamentoResponseErroConsumidor do professor: recusa do banco (ou "Banco indisponível" do worker).
 @Slf4j
 @Component
 @RequiredArgsConstructor

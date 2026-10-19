@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-// Controle de envio de e-mails pedido no enunciado. Só ADMIN (SecurityConfig: /api/emails/**).
-// Os 50 mais recentes primeiro, com o destinatário mascarado e sem o corpo.
 @RestController
 @RequestMapping("/api/emails")
 @RequiredArgsConstructor

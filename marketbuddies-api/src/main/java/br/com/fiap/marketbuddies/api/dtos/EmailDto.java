@@ -5,7 +5,6 @@ import br.com.fiap.marketbuddies.api.enums.StatusEmail;
 
 import java.time.LocalDateTime;
 
-// Linha do controle de envio (GET /api/emails). O destinatário sai mascarado e o corpo do e-mail não é exposto.
 public record EmailDto(
         Long id,
         Long orderId,
@@ -15,7 +14,6 @@ public record EmailDto(
         LocalDateTime sendDateEmail,
         String errorMessage) {
 
-    // Chamar dentro da transação: lê o id do pedido.
     public static EmailDto from(EmailEntity email) {
         return new EmailDto(
                 email.getId(),
@@ -27,7 +25,6 @@ public record EmailDto(
                 email.getErrorMessage());
     }
 
-    // cliente@marketbuddies.com → cl***@marketbuddies.com (local com até 2 letras mostra só a primeira)
     static String mask(String email) {
         if (email == null) {
             return null;

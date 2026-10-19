@@ -18,11 +18,9 @@ public class UserEntity {
     @Column(nullable = false, length = 120)
     private String fullName;
 
-    // Usado como login.
     @Column(nullable = false, unique = true, length = 160)
     private String email;
 
-    // Hash BCrypt, nunca a senha em texto.
     @Column(nullable = false, length = 100)
     private String password;
 
