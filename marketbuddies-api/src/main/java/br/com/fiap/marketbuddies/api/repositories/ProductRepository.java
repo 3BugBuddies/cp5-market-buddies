@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
@@ -17,6 +18,8 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     List<ProductEntity> findByNameContainingIgnoreCaseOrderByIdAsc(String name);
 
     List<ProductEntity> findByNameContainingIgnoreCaseAndCategoryOrderByIdAsc(String name, Category category);
+
+    List<ProductEntity> findByNameInAndImagePathIsNull(Collection<String> names);
 
     // Ofertas da semana na landing: com desconto e com estoque.
     List<ProductEntity> findTop4ByDiscountPercentageGreaterThanAndStockGreaterThanOrderByDiscountPercentageDescIdAsc(

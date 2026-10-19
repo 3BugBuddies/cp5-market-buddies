@@ -14,7 +14,9 @@
         <span th:if="${p.stock == 0}" class="mb-badge mb-badge--danger">Esgotado</span>
         <span th:if="${p.onSale and p.stock > 0}" class="mb-badge mb-badge--offer"
               th:text="'−' + ${p.discountPercentage.stripTrailingZeros().toPlainString()} + '%'">−7%</span>
-        <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
+        <img th:if="${p.imagePath != null}" class="mb-product__img" th:src="@{${p.imagePath}}" th:alt="${p.name}"
+             loading="lazy" width="600" height="600">
+        <svg th:unless="${p.imagePath != null}" class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
     </a>
     <div class="mb-product__body">
         <span class="mb-product__cat" th:text="${p.category.label}">Mercearia</span>

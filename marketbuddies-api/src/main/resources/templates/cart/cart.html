@@ -48,12 +48,19 @@
                     <tbody>
                     <tr th:each="it : ${cart.items}">
                         <td>
-                            <div style="display: flex; flex-direction: column">
-                                <span style="font-weight: 500" th:text="${it.name}">Café torrado e moído 500 g</span>
-                                <span style="font-size: var(--mb-fs-xs); color: var(--mb-ink-600)"
-                                      th:text="${(it.onSale ? 'Em oferta · ' : '') + 'Estoque disponível: ' + it.stock}">Estoque disponível: 18</span>
-                                <span th:if="${it.overStock}" style="font-size: var(--mb-fs-xs); color: var(--mb-red-600); font-weight: 500"
-                                      th:text="${it.stock > 0 ? 'Só restam ' + it.stock + ' unidades. Ajuste a quantidade.' : 'Esgotado. Remova o item para continuar.'}">Só restam 3 unidades.</span>
+                            <div class="mb-line-item">
+                                <img th:if="${it.imagePath != null}" class="mb-thumb mb-thumb--lg" th:src="@{${it.imagePath}}" th:alt="${it.name}"
+                                     loading="lazy" width="56" height="56">
+                                <span th:unless="${it.imagePath != null}" class="mb-thumb mb-thumb--lg mb-thumb--empty" aria-hidden="true">
+                                    <svg class="mb-icon" viewBox="0 0 24 24"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
+                                </span>
+                                <div style="display: flex; flex-direction: column; min-width: 0">
+                                    <span style="font-weight: 500" th:text="${it.name}">Café torrado e moído 500 g</span>
+                                    <span style="font-size: var(--mb-fs-xs); color: var(--mb-ink-600)"
+                                          th:text="${(it.onSale ? 'Em oferta · ' : '') + 'Estoque disponível: ' + it.stock}">Estoque disponível: 18</span>
+                                    <span th:if="${it.overStock}" style="font-size: var(--mb-fs-xs); color: var(--mb-red-600); font-weight: 500"
+                                          th:text="${it.stock > 0 ? 'Só restam ' + it.stock + ' unidades. Ajuste a quantidade.' : 'Esgotado. Remova o item para continuar.'}">Só restam 3 unidades.</span>
+                                </div>
                             </div>
                         </td>
                         <td class="mb-num" th:text="${'R$ ' + #numbers.formatDecimal(it.unitPrice, 1, 'POINT', 2, 'COMMA')}">R$ 18,71</td>
