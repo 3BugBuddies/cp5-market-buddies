@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Produtos')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('produtos')}"></header>
+<main class="mb-page" style="flex: 1">
+    <div class="mb-container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div class="mb-page-header">
+            <div>
+                <h1>Produtos</h1>
+                <span class="mb-page-header__sub"
+                      th:text="${#lists.size(products)} == 1 ? '1 produto' : ${#lists.size(products)} + ' produtos'">8 produtos</span>
+            </div>
+            <!-- GET: a busca fica na URL e mantém a categoria escolhida -->
+            <form class="mb-catalog-search" th:action="@{/products}" method="get" role="search">
+                <input type="hidden" name="category" th:if="${category != null}" th:value="${category.name()}">
+                <div class="mb-field">
+                    <label class="mb-label" for="vt-busca">Buscar</label>
+                    <input class="mb-input" id="vt-busca" type="search" name="search" th:value="${search}"
+                           placeholder="Banana, café, detergente…">
+                </div>
+                <button class="mb-btn mb-btn--primary" type="submit">
+                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="7"></circle><path d="M21 21l-6-6"></path></svg>Buscar
+                </button>
+            </form>
+        </div>
+
+        <div class="mb-catalog-chips" role="group" aria-label="Categorias">
+            <a class="mb-chip" th:classappend="${category == null} ? 'is-active'"
+               th:href="${search.isEmpty()} ? @{/products} : @{/products(search=${search})}"
+               th:attr="aria-current=${category == null} ? 'true' : null">Todas</a>
+            <a class="mb-chip" th:each="c : ${categories}"
+               th:classappend="${category == c} ? 'is-active'"
+               th:href="${search.isEmpty()} ? @{/products(category=${c.name()})} : @{/products(category=${c.name()},search=${search})}"
+               th:attr="aria-current=${category == c} ? 'true' : null"
+               th:text="${c.label}">Hortifruti</a>
+        </div>
+
+        <div th:if="${products.isEmpty()}" class="mb-card mb-empty">
+            <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><path d="M3 3l18 18"></path></svg>
+            <h2 class="mb-empty__title">Nenhum produto encontrado</h2>
+            <p>Tente outro nome ou outra categoria.</p>
+            <a class="mb-btn mb-btn--secondary" th:href="@{/products}">Ver todos os produtos</a>
+        </div>
+
+        <div th:unless="${products.isEmpty()}" class="mb-grid">
+            <th:block th:each="p : ${products}">
+                <article th:replace="~{fragments/product-card :: card(${p}, true)}"></article>
+            </th:block>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

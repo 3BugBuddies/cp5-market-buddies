@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<!--
+  Card de produto da vitrine e da landing. Uso:
+    <article th:replace="~{fragments/product-card :: card(${p}, true)}"></article>
+  p é um ProductDto. buy = true (vitrine): "Adicionar ao carrinho" faz POST /cart/add (carrinho da T6) e some para ADMIN (Q7).
+  buy = false (landing): "Ver na loja" em secondary, porque o vermelho de marca fica para o CTA de compra.
+-->
+<body>
+
+<article th:fragment="card(p, buy)" class="mb-product" th:classappend="${p.stock == 0} ? 'mb-product--out'">
+    <a class="mb-product__media" th:href="@{/products/{id}(id=${p.id})}" th:aria-label="${p.name}">
+        <span th:if="${p.stock == 0}" class="mb-badge mb-badge--danger">Esgotado</span>
+        <span th:if="${p.onSale and p.stock > 0}" class="mb-badge mb-badge--offer"
+              th:text="'−' + ${p.discountPercentage.stripTrailingZeros().toPlainString()} + '%'">−7%</span>
+        <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
+    </a>
+    <div class="mb-product__body">
+        <span class="mb-product__cat" th:text="${p.category.label}">Mercearia</span>
+        <a class="mb-product__name" th:href="@{/products/{id}(id=${p.id})}" th:text="${p.name}">Café torrado e moído 500 g</a>
+        <span th:if="${p.onSale}" class="mb-product__price mb-product__price--offer">
+            <th:block th:text="'R$ ' + ${#numbers.formatDecimal(p.finalPrice, 1, 'POINT', 2, 'COMMA')}">R$ 18,71</th:block>
+            <span class="mb-product__old" th:text="'R$ ' + ${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')}">R$ 20,12</span>
+        </span>
+        <span th:unless="${p.onSale}" class="mb-product__price"
+              th:text="'R$ ' + ${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')}">R$ 5,88</span>
+        <span th:if="${p.stock == 0}" class="mb-product__stock">Sem estoque</span>
+        <span th:if="${p.stock > 0 and p.stock <= 5}" class="mb-product__stock mb-product__stock--low"
+              th:text="'Últimas ' + ${p.stock} + ' unidades'">Últimas 4 unidades</span>
+        <span th:if="${p.stock > 5}" class="mb-product__stock" th:text="'Estoque: ' + ${p.stock} + ' un.'">Estoque: 18 un.</span>
+
+        <a th:unless="${buy}" class="mb-btn mb-btn--secondary mb-btn--block mb-product__buy"
+           th:href="@{/products/{id}(id=${p.id})}">Ver na loja</a>
+        <th:block th:if="${buy}" sec:authorize="!hasRole('ADMIN')">
+            <button th:if="${p.stock == 0}" class="mb-btn mb-btn--buy mb-btn--block mb-product__buy" type="button" disabled>Adicionar ao carrinho</button>
+            <form th:if="${p.stock > 0}" class="mb-product__buy" th:action="@{/cart/add}" method="post">
+                <input type="hidden" name="productId" th:value="${p.id}">
+                <input type="hidden" name="quantity" value="1">
+                <button class="mb-btn mb-btn--buy mb-btn--block" type="submit">Adicionar ao carrinho</button>
+            </form>
+        </th:block>
+        <a th:if="${buy}" sec:authorize="hasRole('ADMIN')" class="mb-btn mb-btn--secondary mb-btn--block mb-product__buy"
+           th:href="@{/products/{id}(id=${p.id})}">Ver detalhes</a>
+    </div>
+</article>
+
+</body>
+</html>

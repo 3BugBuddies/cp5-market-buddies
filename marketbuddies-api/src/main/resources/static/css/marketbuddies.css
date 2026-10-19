@@ -398,3 +398,41 @@
   .mb-root *, .mb-root *::before, .mb-root *::after { transition: none !important; animation: none !important; }
   .mb-btn:hover, .mb-product:hover { transform: none; }
 }
+
+/* ---------- Produtos (T5) ---------- */
+.mb-catalog-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--mb-space-3); max-width: 100%; }
+.mb-catalog-search .mb-field { width: 280px; max-width: 100%; }
+.mb-catalog-chips { display: flex; flex-wrap: wrap; gap: var(--mb-space-2); margin-bottom: var(--mb-space-5); }
+.mb-product__body .mb-product__buy { margin-top: auto; }
+.mb-detail__media { flex: 1 1 360px; min-width: 0; max-width: 100%; aspect-ratio: 4 / 3; position: relative; display: grid; place-items: center;
+  background: var(--mb-blue-50); border: 1px solid var(--mb-line); border-radius: var(--mb-radius-md); color: var(--mb-blue-700); }
+.mb-stepper input { width: 44px; height: 32px; border: 0; background: transparent; text-align: center; font: inherit;
+  font-weight: var(--mb-fw-medium); font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield; }
+.mb-stepper input::-webkit-outer-spin-button, .mb-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.mb-modal > .mb-modal__panel { width: 100%; }
+[data-offer-fields][hidden] { display: none !important; }
+
+/* Navbar no celular (achado da T4: "Entrar / Criar conta" estourava a 390 px).
+   A barra fica com logo, carrinho e menu; links e conta descem para o painel do menu aberto. */
+.mb-navbar__account { display: flex; align-items: center; gap: var(--mb-space-3); }
+@media (max-width: 640px) {
+  .mb-navbar__inner { height: auto; min-height: var(--mb-navbar-h); flex-wrap: wrap; gap: 0 var(--mb-space-3); }
+  .mb-navbar__user { display: contents; }
+  .mb-navbar__cart { order: 1; margin-left: auto; }
+  .mb-navbar__menu { order: 2; }
+  .mb-navbar__account { display: none; }
+  .mb-navbar.is-open .mb-navbar__links { order: 10; position: static; flex-basis: 100%; padding: 0 0 var(--mb-space-3); gap: var(--mb-space-3); }
+  .mb-navbar.is-open .mb-navbar__links:empty { display: none; }
+  .mb-navbar.is-open .mb-navbar__account { order: 11; flex-basis: 100%; display: flex; flex-wrap: wrap; padding: var(--mb-space-3) 0 var(--mb-space-4);
+    border-top: 1px solid var(--mb-on-dark-hover); }
+}
+
+/* Login: quadro de contas de teste */
+.mb-test-accounts { display: flex; flex-direction: column; gap: var(--mb-space-3); padding: var(--mb-space-4); }
+.mb-test-account { display: flex; flex-direction: column; gap: var(--mb-space-1); padding-top: var(--mb-space-3); border-top: 1px solid var(--mb-line); }
+.mb-test-account__head { display: flex; align-items: center; justify-content: space-between; gap: var(--mb-space-2); }
+.mb-test-account__row { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: var(--mb-space-2); font-size: var(--mb-fs-sm); }
+.mb-test-account__row code { overflow-wrap: anywhere; }
+.mb-btn.is-copied { color: var(--mb-success-ink); background: var(--mb-success-bg); }
+.mb-copy-status { margin: 0; min-height: 1.4em; font-size: var(--mb-fs-xs); color: var(--mb-success-ink); font-weight: var(--mb-fw-medium); }
+.mb-btn[hidden] { display: none; }
