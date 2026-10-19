@@ -202,24 +202,6 @@ Três exchanges `direct` duráveis, uma por mensagem, como na demo do professor.
 
 As mensagens são JSON (`JacksonJsonMessageConverter`, Jackson 3). Mensagem que falha no consumidor é descartada e logada (`default-requeue-rejected: false`), em vez de voltar à fila em loop.
 
-### Correspondência com a demo do professor
-
-Os nomes seguem a demo `RabbitmqSpringBoot` (`demo-backend-api` + `demo-backend-worker`), traduzidos para inglês:
-
-| Demo do professor | MarketBuddies |
-|-------------------|---------------|
-| `pagamento-request-exchange` / `-rout-key` / `-queue` | `payment-request-exchange` / `-routing-key` / `-queue` |
-| `pagamento-response-sucesso-*` | `payment-response-success-*` |
-| `pagamento-response-erro-*` | `payment-response-error-*` |
-| `PagamentoFacade` | `PaymentFacade` |
-| `PagamentoRequestProducer` | `PaymentRequestProducer` |
-| `PagamentoResponseSucessoConsumidor` / `PagamentoResponseErroConsumidor` | `PaymentResponseSuccessConsumer` / `PaymentResponseErrorConsumer` |
-| `PagamentoRequestConsumidor` (worker) | `PaymentRequestConsumer` |
-| `PagamentoSucessoProdutor` / `PagamentoErroProdutor` | `PaymentSuccessProducer` / `PaymentErrorProducer` |
-| `PagamentoDTO` | `PaymentRequestDto` / `PaymentResponseDto` |
-
-Na demo, as exchanges e filas eram criadas no painel; aqui são declaradas em código, como o `RabbitmqSpringEmail` faz com a fila de e-mail.
-
 ### Mensagens
 
 `PaymentRequestDto` (api → worker), pedido 42 com 1 café e 2 bananas:
@@ -252,7 +234,7 @@ Recusado:
 
 ### Regra do Tranquilo Bank
 
-O banco **recusa** quando o total é **maior que R$ 500,00** (`tranquilo-bank.approval-limit`, variável `APPROVAL_LIMIT`); caso contrário aprova e devolve um código `TB-` + 8 caracteres hexadecimais. A decisão de negócio volta sempre com `200`, aprovada ou recusada. O banco não guarda transações: cada decisão vai para o log (`Pedido 42 · R$ 33,83 · APROVADO TB-7F3A9C21`), e o registro oficial fica no pedido da api.
+O banco **recusa** quando o total é **maior que R$ 500,00** (`tranquilo-bank.approval-limit` no `application.yaml`); caso contrário aprova e devolve um código `TB-` + 8 caracteres hexadecimais. A decisão de negócio volta sempre com `200`, aprovada ou recusada. O banco não guarda transações: cada decisão vai para o log (`Pedido 42 · R$ 33,83 · APROVADO TB-7F3A9C21`), e o registro oficial fica no pedido da api.
 
 ### Banco indisponível
 
@@ -325,7 +307,8 @@ Nenhuma senha fica no repositório. Cada `application.yaml` lê as configuraçõ
 | Variável | Padrão local | Descrição |
 |----------|--------------|-----------|
 | `PORT` | `8090` | Porta HTTP |
-| `APPROVAL_LIMIT` | `500.00` | Valor acima do qual o pagamento é recusado |
+
+O limite de aprovação (R$ 500,00) não é variável de ambiente: fica em `tranquilo-bank.approval-limit`, no `application.yaml`.
 
 ---
 
@@ -340,136 +323,11 @@ A conta de cliente é criada pelo seed (nome "Ana Souza") e aparece num quadro "
 
 ---
 
-## Deploy no Railway
-
-Projeto `marketbuddies` com **5 serviços**:
-
-| Serviço | Origem | Root directory | Domínio |
-|---------|--------|----------------|---------|
-| `marketbuddies-api` | este repositório | `/marketbuddies-api` | público |
-| `marketbuddies-worker` | este repositório | `/marketbuddies-worker` | nenhum |
-| `tranquilo-bank` | este repositório | `/tranquilo-bank` | público (para o Postman) |
-| `Postgres` | PostgreSQL 18 | — | proxy TCP (conexão externa) |
-| `rabbitmq` | imagem `rabbitmq:4-management` | — | público só o painel (15672) |
-
-**Build.** Cada serviço do repositório tem o seu `Dockerfile` (multi-stage, Maven + JRE 21) e usa a sua pasta como diretório raiz. Como o campo de builder do Railway não aceitou `DOCKERFILE` pelo CLI, cada serviço define `RAILWAY_DOCKERFILE_PATH=Dockerfile`. Os watch paths por pasta disparam o deploy só do serviço cuja pasta mudou.
-
-**Variáveis por referência.** O banco e o RabbitMQ não têm valor copiado: a api lê as variáveis dos outros serviços.
-
-```
-DB_URL              = jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}
-DB_USER             = ${{Postgres.PGUSER}}
-DB_PASSWORD         = ${{Postgres.PGPASSWORD}}
-RABBITMQ_HOST       = rabbitmq.railway.internal
-TRANQUILO_BANK_URL  = http://${{tranquilo-bank.RAILWAY_PRIVATE_DOMAIN}}:8090     # só no worker
-```
-
-A `DB_URL` é montada com as variáveis `PG*` e começa com `jdbc:` (a variável pronta do Railway começa com `postgresql://`, que o driver JDBC não aceita). Os serviços falam entre si pela **rede privada** do Railway; o worker não precisa de domínio público.
-
-**Memória das JVMs.** O plano de teste tem crédito limitado, então cada JVM tem teto de memória (`JAVA_TOOL_OPTIONS`):
-
-| Serviço | Opções |
-|---------|--------|
-| api | `-Xmx256m -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC` |
-| worker e tranquilo-bank | `-Xmx128m -XX:+UseSerialGC` |
-
-Os Dockerfiles sobem com `-Duser.timezone=America/Sao_Paulo`, para o "hoje" do dashboard e os horários dos pedidos seguirem o horário de Brasília. Atrás do proxy do Railway, `server.forward-headers-strategy: framework` faz os redirects saírem com `https` e o domínio público.
-
-**Consumo.** Medição preliminar com os serviços ociosos: cerca de 0,8 GB somados, o que faz o crédito inicial durar aproximadamente 17 dias. A medição final, com o sistema rodando, entra no aviso do topo deste README (_a preencher_). Se o crédito acabar antes, o `tranquilo-bank` é o primeiro a cair: o worker passa a responder "Banco indisponível" e o PostgreSQL é o último a sair.
-
-<!-- print pendente: assets/railway-servicos.png (projeto com os 5 serviços no ar) -->
-
-### Rodando com Docker
-
-Cada serviço tem `Dockerfile` próprio. Exemplo para o banco:
-
-```bash
-docker build -t tranquilo-bank ./tranquilo-bank
-docker run -p 8090:8090 tranquilo-bank
-```
-
----
-
 ## Modelo de Dados
 
 ![Diagrama ER](assets/diagrama-er.png)
 
 <!-- print pendente: assets/banco-tabelas.png (as 5 tabelas no PostgreSQL) -->
-
----
-
-## Fluxo de Telas
-
-| Rota | Acesso | Descrição |
-|------|--------|-----------|
-| `GET /` | público | Landing page |
-| `GET /login` | público | Login próprio (`?error`, `?logout`, `?registered`), com quadro "Conta de teste" |
-| `POST /login` | público | Autentica, grava o cookie `MB_TOKEN` e redireciona por perfil |
-| `GET/POST /signup` | público | Cadastro de CUSTOMER; sucesso volta ao login com "Conta criada!" |
-| `POST /logout` | logado | Apaga o cookie e volta ao login |
-| `GET /products` | público | Vitrine com busca e filtro por categoria |
-| `GET /products/{id}` | público | Detalhe do produto, com oferta e estoque |
-| `GET /cart` | público | Carrinho (na sessão HTTP); visitante vê "Entrar para finalizar" |
-| `POST /cart/add`, `/cart/update`, `/cart/remove` | público | Altera o carrinho, limitado ao estoque |
-| `GET /checkout` | CUSTOMER | Revisar e pagar (recalcula com o preço atual) |
-| `POST /checkout` | CUSTOMER | Cria o pedido, esvazia o carrinho e vai para `/orders/{id}` |
-| `GET /orders/{id}` | CUSTOMER dono | Pedido: aguardando, aprovado ou recusado |
-| `GET /orders/{id}/status` | CUSTOMER dono | JSON `{status}` consultado a cada 2 s pela tela de aguardando |
-| `POST /orders/{id}/retry` | CUSTOMER dono | "Tentar de novo": remonta o carrinho com os itens do pedido recusado |
-| `GET /admin/dashboard` | ADMIN | KPIs, gráficos e últimas compras |
-| `POST /admin/orders/{id}/resend-email` | ADMIN | Reenvia o e-mail de um pedido aprovado cujo envio falhou |
-| `GET /admin/products` | ADMIN | Gestão: tabela de produtos e modal de edição |
-| `POST /admin/products` | ADMIN | Cria produto |
-| `POST /admin/products/{id}` | ADMIN | Atualiza produto |
-| `POST /admin/products/{id}/delete` | ADMIN | Exclui produto (com confirmação em modal) |
-| `GET /403` | logado | Página 403 estilizada |
-
-Erro de validação no modal de gestão reabre o modal com a mensagem no campo. O preço nunca é digitado: o modal só mostra uma prévia calculada.
-
----
-
-## Demonstração Visual
-
-Prints na ordem do fluxo no navegador, com ênfase no **desenvolvimento e na tela de login**.
-
-1. **Landing page (`/`)** — entrada pública, com "Entrar" e "Criar conta" na navbar.
-   <!-- print pendente: assets/tela-landing.png -->
-2. **Login** — tela própria do MarketBuddies (a tela padrão do Spring nunca aparece), com o quadro "Conta de teste".
-   <!-- print pendente: assets/tela-login.png -->
-3. **Login com credenciais inválidas (`/login?error`)** — alerta de erro na própria tela.
-   <!-- print pendente: assets/tela-login-erro.png -->
-4. **Cadastro com erro de validação** — mensagens por campo, sem sair da tela.
-   <!-- print pendente: assets/tela-cadastro.png -->
-5. **Conta criada (`/login?registered`)** — volta ao login com o aviso de sucesso.
-   <!-- print pendente: assets/tela-cadastro-sucesso.png -->
-6. **Vitrine (`/products`)** — chips de categoria e cards com preço, oferta e estoque.
-   <!-- print pendente: assets/tela-vitrine.png -->
-7. **Detalhe do produto** — Café em oferta, com o preço antigo riscado.
-   <!-- print pendente: assets/tela-detalhe.png -->
-8. **Gestão de produtos (ADMIN)** — tabela com editar e excluir por linha.
-   <!-- print pendente: assets/tela-gestao.png -->
-9. **Modal de edição** — formulário sem campo de preço, com a prévia do preço calculado.
-   <!-- print pendente: assets/tela-modal-editar.png -->
-10. **Modal com erro de validação** — o modal reabre com a mensagem no campo.
-    <!-- print pendente: assets/tela-modal-erro.png -->
-11. **Confirmação de exclusão** — modal pequeno antes de excluir.
-    <!-- print pendente: assets/tela-modal-excluir.png -->
-12. **Página 403** — cliente tentando abrir `/admin/products`.
-    <!-- print pendente: assets/tela-403.png -->
-13. **Carrinho do visitante** — resumo e o botão "Entrar para finalizar".
-    <!-- print pendente: assets/tela-carrinho.png -->
-14. **Checkout** — revisar os itens e pagar.
-    <!-- print pendente: assets/tela-checkout.png -->
-15. **Pedido aguardando pagamento** — a tela consulta o status a cada 2 s.
-    <!-- print pendente: assets/tela-pedido-aguardando.png -->
-16. **Pagamento confirmado** — pedido aprovado, com o código de autorização.
-    <!-- print pendente: assets/tela-pedido-aprovado.png -->
-17. **Pagamento recusado** — motivo da recusa e o botão "Tentar de novo".
-    <!-- print pendente: assets/tela-pedido-recusado.png -->
-18. **Dashboard da gerência** — KPIs, gráficos e últimas compras (detalhado na seção própria).
-    <!-- print pendente: assets/tela-dashboard.png -->
-19. **Vitrine no celular (375 px)** — layout sem rolagem horizontal.
-    <!-- print pendente: assets/tela-celular.png -->
 
 ---
 
