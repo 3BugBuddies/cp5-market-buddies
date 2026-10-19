@@ -53,6 +53,8 @@ marketbuddies:
     password: ${ADMIN_PASSWORD:admin123}
   mail:
     from: ${MAIL_USERNAME:marketbuddies@exemplo.com}
+    # URL pública da api, para o link "Ver meu pedido" do e-mail. No Railway: o domínio público com https
+    base-url: ${APP_BASE_URL:http://localhost:8080}
   # P1: pedido aguardando o banco além de "expiration" vira REFUSED "Tempo esgotado" e devolve o estoque.
   # O job confere a cada expiration-check-ms. Para testar com poucos segundos, sobrescreva na linha de comando:
   #   --marketbuddies.orders.expiration=15s --marketbuddies.orders.expiration-check-ms=3000
