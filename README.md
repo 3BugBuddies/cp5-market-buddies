@@ -42,14 +42,6 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 
 > O deploy roda no plano de teste do Railway, que tem **crédito limitado**. Previsão de ficar no ar até **01/11/2026** (consumo medido: ~886 MB de RAM somados nos 5 serviços, ~US$ 0,32/dia). Depois disso, a aplicação pode ficar indisponível; o vídeo e os prints deste README mostram o fluxo completo.
 
-<!-- print pendente: descomentar quando os prints existirem
-<table>
-  <tr>
-    <td align="center" valign="top"><a href="assets/railway-servicos.png"><img src="assets/railway-servicos.png" alt="Railway: os 5 serviços" width="420"></a><br><sub>Railway: os 5 serviços</sub></td>
-    <td align="center" valign="top"><a href="assets/railway-deploy.png"><img src="assets/railway-deploy.png" alt="Landing no domínio público" width="420"></a><br><sub>Landing no domínio público</sub></td>
-  </tr>
-</table>
--->
 
 ---
 
