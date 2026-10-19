@@ -2,17 +2,27 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head(${'Pedido #' + order.id})}"></head>
 <body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
-<header th:replace="~{fragments/layout :: navbar('nenhum')}"></header>
+<header th:replace="~{fragments/layout :: navbar('pedidos')}"></header>
 <main class="mb-page" style="flex: 1"
-      th:with="total=${'R$ ' + #numbers.formatDecimal(order.totalAmount, 1, 'POINT', 2, 'COMMA')}">
+      th:with="total=${'R$ ' + #numbers.formatDecimal(order.totalAmount, 1, 'POINT', 2, 'COMMA')},
+               admin=${adminView != null and adminView},
+               backUrl=${adminView != null and adminView ? '/admin/orders' : '/orders'}">
     <div class="mb-container">
         <div style="max-width: 640px; margin: 0 auto">
             <div th:replace="~{fragments/layout :: alerts}"></div>
+            <div class="mb-order-back">
+                <a class="mb-link-arrow" th:href="@{${backUrl}}">
+                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"></path></svg>
+                    <span th:text="${admin ? 'Pedidos' : 'Meus pedidos'}">Meus pedidos</span>
+                </a>
+                <span th:if="${admin}" class="mb-muted"
+                      th:text="|${order.customerName} · ${order.customerEmail} · ${order.origin}|">Ana Souza · ana@exemplo.com · WEB</span>
+            </div>
         </div>
 
         <section th:if="${order.status.name() == 'AWAITING_PAYMENT'}" class="mb-card"
                  style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px"
-                 th:attr="data-order-status-url=@{/orders/{id}/status(id=${order.id})}">
+                 th:attr="data-order-status-url=${admin} ? null : @{/orders/{id}/status(id=${order.id})}">
             <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
                 <h1 style="margin: 0" th:text="${'Pedido #' + order.id}">Pedido #1042</h1>
                 <span class="mb-badge mb-badge--warning">Aguardando banco</span>
@@ -34,15 +44,15 @@
                     <span th:text="${'E-mail de confirmação para ' + order.customerEmail}">E-mail de confirmação para ana.souza@exemplo.com</span></li>
             </ol>
             <div style="display: flex; gap: 12px; flex-wrap: wrap">
-                <a class="mb-btn mb-btn--primary" th:href="@{/orders/{id}(id=${order.id})}">Atualizar status</a>
-                <a class="mb-btn mb-btn--ghost" th:href="@{/products}">Voltar à loja</a>
+                <a class="mb-btn mb-btn--primary" th:href="${admin} ? @{/admin/orders/{id}(id=${order.id})} : @{/orders/{id}(id=${order.id})}">Atualizar status</a>
+                <a th:unless="${admin}" class="mb-btn mb-btn--ghost" th:href="@{/products}">Voltar à loja</a>
             </div>
         </section>
 
         <section th:if="${order.status.name() == 'APPROVED'}" class="mb-card"
                  style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px"
-                 th:attr="data-order-status-url=${order.statusEmail == null} ? @{/orders/{id}/status(id=${order.id})} : null,
-                          data-order-wait=${order.statusEmail == null} ? 'email' : null">
+                 th:attr="data-order-status-url=${order.statusEmail == null and !admin} ? @{/orders/{id}/status(id=${order.id})} : null,
+                          data-order-wait=${order.statusEmail == null and !admin} ? 'email' : null">
             <div style="display: flex; gap: 16px; align-items: center">
                 <span style="width: 56px; height: 56px; flex: none; border-radius: 50%; background: var(--mb-success-bg); color: var(--mb-success); display: grid; place-items: center"><svg class="mb-icon" viewBox="0 0 24 24" style="width: 30px; height: 30px" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
                 <div style="display: flex; flex-direction: column; gap: 4px">
@@ -79,7 +89,12 @@
                 <div class="mb-row mb-row--total"><span>Total pago</span><span th:text="${total}">R$ 33,83</span></div>
             </div>
             <div style="display: flex; gap: 12px; flex-wrap: wrap">
-                <a class="mb-btn mb-btn--primary" th:href="@{/products}">Continuar comprando</a>
+                <a th:unless="${admin}" class="mb-btn mb-btn--primary" th:href="@{/products}">Continuar comprando</a>
+                <form th:if="${admin and (order.statusEmail == null or order.statusEmail.name() != 'SENT')}"
+                      th:action="@{/admin/orders/{id}/resend-email(id=${order.id})}" method="post" style="display: contents">
+                    <input type="hidden" name="back" value="orders">
+                    <button class="mb-btn mb-btn--secondary" type="submit">Reenviar e-mail</button>
+                </form>
             </div>
         </section>
 
@@ -109,7 +124,7 @@
                           th:text="${'R$ ' + #numbers.formatDecimal(it.unitPrice * it.quantity, 1, 'POINT', 2, 'COMMA')}">R$ 523,88</span>
                 </div>
             </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap">
+            <div th:unless="${admin}" style="display: flex; gap: 12px; flex-wrap: wrap">
                 <form th:action="@{/orders/{id}/retry(id=${order.id})}" method="post" style="display: contents"
                       onsubmit="this.querySelector('button[type=submit]').disabled = true">
                     <button class="mb-btn mb-btn--buy" type="submit">Tentar de novo</button>

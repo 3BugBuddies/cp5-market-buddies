@@ -468,3 +468,33 @@
 .mb-thumb--lg { width: 56px; height: 56px; }
 .mb-thumb--empty .mb-icon { width: 20px; height: 20px; stroke-width: 1.4; }
 .mb-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Pedidos ---------- */
+.mb-order-status { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.mb-order-status__reason { font-size: var(--mb-fs-xs); color: var(--mb-ink-500); max-width: 28ch; line-height: 1.35; }
+.mb-orders__id a { font-weight: var(--mb-fw-bold); text-decoration: none; }
+.mb-orders__id a:hover { text-decoration: underline; }
+.mb-orders__go { text-align: right; }
+.mb-admin-orders__customer { display: flex; flex-direction: column; line-height: 1.35; }
+.mb-admin-orders__customer .mb-muted { font-size: var(--mb-fs-xs); }
+.mb-admin-orders__actions { align-items: center; }
+.mb-table__actions.mb-admin-orders__actions .mb-btn--secondary { background: var(--mb-surface); color: var(--mb-blue-700); border-color: var(--mb-blue-700); }
+.mb-order-back { display: flex; justify-content: space-between; align-items: center; gap: var(--mb-space-2) var(--mb-space-4);
+  flex-wrap: wrap; margin-bottom: var(--mb-space-4); font-size: var(--mb-fs-sm); }
+@media (max-width: 640px) {
+  .mb-orders { overflow: visible; border: 0; background: transparent; box-shadow: none; }
+  .mb-orders .mb-table, .mb-orders tbody, .mb-orders tr, .mb-orders td { display: block; }
+  .mb-orders thead { display: none; }
+  .mb-orders tbody { display: flex; flex-direction: column; gap: var(--mb-space-3); }
+  .mb-orders tr { background: var(--mb-surface); border: 1px solid var(--mb-line); border-radius: var(--mb-radius-md);
+    box-shadow: var(--mb-shadow-sm); padding: var(--mb-space-3) var(--mb-space-4); }
+  .mb-orders tbody tr:hover td { background: transparent; }
+  .mb-orders td, .mb-orders tbody tr:last-child td { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--mb-space-3);
+    padding: var(--mb-space-2) 0; border-bottom: 1px solid var(--mb-line); text-align: right; }
+  .mb-orders td[data-label]::before { content: attr(data-label); color: var(--mb-ink-500); font-size: var(--mb-fs-xs);
+    font-weight: var(--mb-fw-bold); text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+  .mb-orders .mb-orders__id { font-size: var(--mb-fs-md); padding-top: 0; }
+  .mb-orders .mb-orders__go, .mb-orders tbody tr:last-child .mb-orders__go { border-bottom: 0; padding-bottom: 0; justify-content: flex-end; }
+  .mb-orders .mb-order-status { align-items: flex-end; }
+  .mb-orders .mb-order-status__reason { text-align: right; }
+}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pedidos')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('pedidos')}"></header>
+<main class="mb-page" style="flex: 1" th:with="f=${statusFilter != null ? statusFilter.name() : ''}">
+    <div class="mb-container mb-stack">
+        <div class="mb-page-header" style="margin: 0">
+            <div>
+                <h1>Pedidos</h1>
+                <span class="mb-page-header__sub">Os 50 pedidos mais recentes de todos os clientes</span>
+            </div>
+            <a class="mb-btn mb-btn--secondary" th:href="@{/admin/dashboard}">Ver dashboard</a>
+        </div>
+
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <nav class="mb-catalog-chips" style="margin: 0" aria-label="Filtrar por status do pagamento">
+            <a class="mb-chip" th:href="@{/admin/orders}" th:classappend="${f == ''} ? 'is-active'"
+               th:attr="aria-current=${f == ''} ? 'page' : null">Todos</a>
+            <a class="mb-chip" th:href="@{/admin/orders(status='AWAITING_PAYMENT')}"
+               th:classappend="${f == 'AWAITING_PAYMENT'} ? 'is-active'"
+               th:attr="aria-current=${f == 'AWAITING_PAYMENT'} ? 'page' : null">Aguardando</a>
+            <a class="mb-chip" th:href="@{/admin/orders(status='APPROVED')}"
+               th:classappend="${f == 'APPROVED'} ? 'is-active'"
+               th:attr="aria-current=${f == 'APPROVED'} ? 'page' : null">Aprovados</a>
+            <a class="mb-chip" th:href="@{/admin/orders(status='REFUSED')}"
+               th:classappend="${f == 'REFUSED'} ? 'is-active'"
+               th:attr="aria-current=${f == 'REFUSED'} ? 'page' : null">Recusados</a>
+        </nav>
+
+        <div class="mb-table-wrap">
+            <table class="mb-table">
+                <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Cliente</th>
+                    <th>Origem</th>
+                    <th>Data</th>
+                    <th class="mb-num">Itens</th>
+                    <th class="mb-num">Total</th>
+                    <th>Pagamento</th>
+                    <th>E-mail</th>
+                    <th class="mb-num">Ações</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${orders.isEmpty()}">
+                    <td colspan="9" class="mb-muted" style="text-align: center"
+                        th:text="${f == '' ? 'Nenhum pedido ainda.' : 'Nenhum pedido com esse status.'}">Nenhum pedido ainda.</td>
+                </tr>
+                <tr th:each="o : ${orders}" th:with="units=${#aggregates.sum(o.items.![quantity])}">
+                    <td class="mb-orders__id">
+                        <a th:href="@{/admin/orders/{id}(id=${o.id})}" th:text="|#${o.id}|">#1042</a>
+                    </td>
+                    <td>
+                        <span class="mb-admin-orders__customer">
+                            <span th:text="${o.customerName}">Ana Souza</span>
+                            <span class="mb-muted" th:text="${o.customerEmail}">ana.souza@exemplo.com</span>
+                        </span>
+                    </td>
+                    <td><span class="mb-badge mb-badge--neutral" th:text="${o.origin}">WEB</span></td>
+                    <td style="white-space: nowrap" th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}">18/10/2026 20:52</td>
+                    <td class="mb-num" th:text="${units}">3</td>
+                    <td class="mb-num" th:text="|R$ ${#numbers.formatDecimal(o.totalAmount, 1, 'POINT', 2, 'COMMA')}|">R$ 33,83</td>
+                    <td><span th:replace="~{fragments/order-status :: payment(${o})}"></span></td>
+                    <td><span th:replace="~{fragments/order-status :: email(${o})}"></span></td>
+                    <td>
+                        <div class="mb-table__actions mb-admin-orders__actions">
+                            <form th:if="${o.status.name() == 'APPROVED' and (o.statusEmail == null or o.statusEmail.name() != 'SENT')}"
+                                  th:action="@{/admin/orders/{id}/resend-email(id=${o.id})}" method="post" style="margin: 0">
+                                <input type="hidden" name="back" value="orders">
+                                <button type="submit" class="mb-btn mb-btn--secondary mb-btn--sm">Reenviar e-mail</button>
+                            </form>
+                            <a class="mb-btn mb-btn--ghost mb-btn--sm" th:href="@{/admin/orders/{id}(id=${o.id})}"
+                               th:aria-label="|Ver pedido #${o.id}|" title="Ver">
+                                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"></circle><path d="M22 12c-2.7 4.7-6 7-10 7s-7.3-2.3-10-7c2.7-4.7 6-7 10-7s7.3 2.3 10 7"></path></svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -130,7 +130,12 @@
         </section>
 
         <section style="display: flex; flex-direction: column; gap: var(--mb-space-3)">
-            <h2 style="margin: 0">Últimas compras</h2>
+            <div class="mb-dash__card-head">
+                <h2 style="margin: 0">Últimas compras</h2>
+                <a class="mb-link-arrow" th:href="@{/admin/orders}">Ver todos os pedidos
+                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                </a>
+            </div>
             <div class="mb-table-wrap">
                 <table class="mb-table">
                     <thead>
