@@ -589,7 +589,7 @@ Tela `/admin/dashboard` (ADMIN), com Chart.js. Os dados vêm do banco; o lucro u
 
 **Últimas 10 compras:** tabela com badge de pagamento e de e-mail e o botão "Reenviar e-mail" para pedido aprovado sem e-mail ou com `ERROR`.
 
-<!-- print pendente: assets/tela-dashboard.png -->
+![Dashboard da gerência no deploy](assets/tela-dashboard.png)
 
 ---
 
