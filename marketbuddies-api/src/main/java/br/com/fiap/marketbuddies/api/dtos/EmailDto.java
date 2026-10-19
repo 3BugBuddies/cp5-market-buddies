@@ -27,7 +27,7 @@ public record EmailDto(
                 email.getErrorMessage());
     }
 
-    // cliente@marketbuddies.com → cl***@marketbuddies.com (local com até 2 letras mostra só a primeira)
+    // cliente@exemplo.com → cl***@exemplo.com (local com até 2 letras mostra só a primeira)
     static String mask(String email) {
         if (email == null) {
             return null;

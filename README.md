@@ -209,7 +209,7 @@ As mensagens são JSON (`JacksonJsonMessageConverter`, Jackson 3). Mensagem que 
 ```json
 {
   "orderId": 42,
-  "customerEmail": "cliente@marketbuddies.com",
+  "customerEmail": "spbiel18@gmail.com",
   "customerName": "Ana Souza",
   "totalAmount": 30.47,
   "items": [
@@ -316,7 +316,7 @@ O limite de aprovação (R$ 500,00) não é variável de ambiente: fica em `tran
 
 | Perfil | E-mail | Senha |
 |--------|--------|-------|
-| CUSTOMER | `cliente@marketbuddies.com` | `cliente123` |
+| CUSTOMER | `spbiel18@gmail.com` | `cliente123` |
 | ADMIN | informado no `.txt` da entrega | informado no `.txt` da entrega |
 
 A conta de cliente é criada pelo seed (nome "Ana Souza") e aparece num quadro "Conta de teste" na tela de login. A senha do ADMIN fica só no `.txt` da entrega, porque a conta dá acesso à gestão de produtos e ao dashboard.
@@ -344,7 +344,7 @@ A coleção está em [`postman/marketbuddies.postman_collection.json`](postman/m
 |----------|--------------|-----|
 | `{{api}}` | `https://marketbuddies-api-production.up.railway.app` | URL da API (local: `http://localhost:8080`) |
 | `{{bank}}` | `https://tranquilo-bank-production.up.railway.app` | URL do Tranquilo Bank (local: `http://localhost:8090`) |
-| `{{clientEmail}}` / `{{clientPassword}}` | `cliente@marketbuddies.com` / `cliente123` | Login do cliente de teste |
+| `{{clientEmail}}` / `{{clientPassword}}` | `spbiel18@gmail.com` / `cliente123` | Login do cliente de teste |
 | `{{adminEmail}}` / `{{adminPassword}}` | vazias | Preencher com o ADMIN do `.txt` da entrega |
 | `{{token}}` / `{{adminToken}}` / `{{orderId}}` | vazias | Preenchidas pelos scripts de teste |
 
@@ -359,7 +359,7 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 **1. Login (cliente)** — `POST {{api}}/api/auth/login`, resposta `200`.
 
 ```json
-{ "email": "cliente@marketbuddies.com", "password": "cliente123" }
+{ "email": "spbiel18@gmail.com", "password": "cliente123" }
 ```
 
 ```json
@@ -391,7 +391,7 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
   "id": 42,
   "status": "AWAITING_PAYMENT",
   "totalAmount": 30.47,
-  "customerEmail": "cliente@marketbuddies.com",
+  "customerEmail": "spbiel18@gmail.com",
   "createdAt": "2026-10-18T20:52:00",
   "items": [
     { "productName": "Café torrado e moído 500 g", "quantity": 1, "unitPrice": 18.71 },
@@ -409,7 +409,7 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
   "id": 42,
   "status": "APPROVED",
   "totalAmount": 30.47,
-  "customerEmail": "cliente@marketbuddies.com",
+  "customerEmail": "spbiel18@gmail.com",
   "createdAt": "2026-10-18T20:52:00",
   "respondedAt": "2026-10-18T20:52:01",
   "authorizationCode": "TB-7F3A9C21",
@@ -435,7 +435,7 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
   "id": 43,
   "status": "REFUSED",
   "totalAmount": 524.08,
-  "customerEmail": "cliente@marketbuddies.com",
+  "customerEmail": "spbiel18@gmail.com",
   "createdAt": "2026-10-18T20:53:00",
   "respondedAt": "2026-10-18T20:53:01",
   "authorizationCode": null,
@@ -482,7 +482,7 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 **11. Tranquilo Bank — aprovado** — `POST {{bank}}/api/payments/authorize`, resposta `200`.
 
 ```json
-{ "orderId": 42, "amount": 33.83, "customerEmail": "cliente@marketbuddies.com" }
+{ "orderId": 42, "amount": 33.83, "customerEmail": "spbiel18@gmail.com" }
 ```
 
 ```json

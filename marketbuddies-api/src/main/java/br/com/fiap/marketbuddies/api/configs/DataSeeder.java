@@ -23,8 +23,10 @@ import java.util.List;
 public class DataSeeder implements CommandLineRunner {
 
     // Conta de cliente de teste, à mostra na tela de login (AuthViewController) para a correção.
-    public static final String TEST_CUSTOMER_EMAIL = "cliente@marketbuddies.com";
+    // Caixa real da equipe: marketbuddies.com é um domínio de terceiros, e o e-mail de confirmação iria para ele.
+    public static final String TEST_CUSTOMER_EMAIL = "spbiel18@gmail.com";
     public static final String TEST_CUSTOMER_PASSWORD = "cliente123";
+    private static final String LEGACY_TEST_CUSTOMER_EMAIL = "cliente@marketbuddies.com";
 
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
@@ -39,6 +41,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedUsers() {
+        renameLegacyTestCustomer();
         if (userRepository.count() > 0) {
             return;
         }
@@ -47,6 +50,17 @@ public class DataSeeder implements CommandLineRunner {
                 user("Ana Souza", TEST_CUSTOMER_EMAIL, TEST_CUSTOMER_PASSWORD, Role.CUSTOMER)
         ));
         log.info("Seed: ADMIN {} e cliente de teste criados", adminProperties.email());
+    }
+
+    // Bancos já semeados com o e-mail antigo (deploy no Railway): troca o e-mail da mesma conta, sem criar outra.
+    private void renameLegacyTestCustomer() {
+        if (userRepository.existsByEmail(TEST_CUSTOMER_EMAIL)) {
+            return;
+        }
+        userRepository.findByEmail(LEGACY_TEST_CUSTOMER_EMAIL).ifPresent(user -> {
+            user.setEmail(TEST_CUSTOMER_EMAIL);
+            log.info("Seed: cliente de teste {} passou a ser {}", LEGACY_TEST_CUSTOMER_EMAIL, TEST_CUSTOMER_EMAIL);
+        });
     }
 
     private void seedProducts() {

@@ -20,7 +20,7 @@
     },
     {
       "key": "clientEmail",
-      "value": "cliente@marketbuddies.com",
+      "value": "spbiel18@gmail.com",
       "type": "string"
     },
     {
@@ -660,7 +660,7 @@
             "description": "Chamada direta ao banco com R$ 33,83 (abaixo de R$ 500,00): responde 200 com approved true e um authorizationCode TB-.... Print P10 do README.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": 42,\n  \"amount\": 33.83,\n  \"customerEmail\": \"cliente@marketbuddies.com\"\n}",
+              "raw": "{\n  \"orderId\": 42,\n  \"amount\": 33.83,\n  \"customerEmail\": \"spbiel18@gmail.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -712,7 +712,7 @@
             "description": "R$ 523,88 passa de R$ 500,00: o banco responde 200 com approved false e o motivo da recusa (a decisão de negócio volta sempre como 200). Print P11 do README.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": 43,\n  \"amount\": 523.88,\n  \"customerEmail\": \"cliente@marketbuddies.com\"\n}",
+              "raw": "{\n  \"orderId\": 43,\n  \"amount\": 523.88,\n  \"customerEmail\": \"spbiel18@gmail.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -759,7 +759,7 @@
             "description": "Corpo sem 'amount': a validação do banco responde 400. Print P12 do README.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"orderId\": 44,\n  \"customerEmail\": \"cliente@marketbuddies.com\"\n}",
+              "raw": "{\n  \"orderId\": 44,\n  \"customerEmail\": \"spbiel18@gmail.com\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

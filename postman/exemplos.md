@@ -9,7 +9,7 @@ Valores do seed: Café torrado e moído 500 g (id 7) R$ 18,71 com 7% de oferta (
 Request:
 
 ```json
-{ "email": "cliente@marketbuddies.com", "password": "cliente123" }
+{ "email": "spbiel18@gmail.com", "password": "cliente123" }
 ```
 
 Response `200`:
@@ -39,7 +39,7 @@ Response `202 Accepted`, header `Location: /api/orders/42`:
   "id": 42,
   "status": "AWAITING_PAYMENT",
   "totalAmount": 30.47,
-  "customerEmail": "cliente@marketbuddies.com",
+  "customerEmail": "spbiel18@gmail.com",
   "createdAt": "2026-10-18T20:52:00",
   "items": [
     { "productName": "Café torrado e moído 500 g", "quantity": 1, "unitPrice": 18.71 },
@@ -57,7 +57,7 @@ Response `200`:
   "id": 42,
   "status": "APPROVED",
   "totalAmount": 30.47,
-  "customerEmail": "cliente@marketbuddies.com",
+  "customerEmail": "spbiel18@gmail.com",
   "createdAt": "2026-10-18T20:52:00",
   "respondedAt": "2026-10-18T20:52:01",
   "authorizationCode": "TB-7F3A9C21",
@@ -81,7 +81,7 @@ Request `POST /api/orders`:
 Response `202` (o pedido nasce aguardando):
 
 ```json
-{ "id": 43, "status": "AWAITING_PAYMENT", "totalAmount": 524.08, "customerEmail": "cliente@marketbuddies.com", "createdAt": "2026-10-18T20:53:00", "items": [ { "productName": "Café torrado e moído 500 g", "quantity": 17, "unitPrice": 18.71 }, { "productName": "Maçã gala (kg)", "quantity": 21, "unitPrice": 9.81 } ] }
+{ "id": 43, "status": "AWAITING_PAYMENT", "totalAmount": 524.08, "customerEmail": "spbiel18@gmail.com", "createdAt": "2026-10-18T20:53:00", "items": [ { "productName": "Café torrado e moído 500 g", "quantity": 17, "unitPrice": 18.71 }, { "productName": "Maçã gala (kg)", "quantity": 21, "unitPrice": 9.81 } ] }
 ```
 
 `GET /api/orders/43` depois de ~2 s, response `200`:
@@ -91,7 +91,7 @@ Response `202` (o pedido nasce aguardando):
   "id": 43,
   "status": "REFUSED",
   "totalAmount": 524.08,
-  "customerEmail": "cliente@marketbuddies.com",
+  "customerEmail": "spbiel18@gmail.com",
   "createdAt": "2026-10-18T20:53:00",
   "respondedAt": "2026-10-18T20:53:01",
   "authorizationCode": null,
@@ -132,7 +132,7 @@ Corpo inválido (`{ "items": [] }`), response `400`:
 Autorização aprovada, request:
 
 ```json
-{ "orderId": 42, "amount": 33.83, "customerEmail": "cliente@marketbuddies.com" }
+{ "orderId": 42, "amount": 33.83, "customerEmail": "spbiel18@gmail.com" }
 ```
 
 Response `200`:
