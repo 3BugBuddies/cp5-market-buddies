@@ -44,18 +44,6 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 
 ![Arquitetura do MarketBuddies](assets/arquitetura.png)
 
-Três serviços Spring Boot no mesmo repositório, um para cada caixa do diagrama do enunciado:
-
-| Serviço | Pasta | Caixa do diagrama do enunciado | Papel |
-|---------|-------|--------------------------------|-------|
-| MarketBuddies API | `marketbuddies-api/` | Back End API + Front end Web | Telas Thymeleaf, cadastro e login com JWT, CRUD de produtos, carrinho, checkout, publica o pedido de pagamento, consome as respostas, envia o e-mail de confirmação e registra o envio, dashboard da gerência e API REST para o Postman |
-| MarketBuddies Worker | `marketbuddies-worker/` | Integração Pagamentos | Consome o pedido da fila, chama o Tranquilo Bank por HTTP e publica a resposta na fila de sucesso ou de erro |
-| Tranquilo Bank | `tranquilo-bank/` | API Plataforma de Pagamentos / Banco Tranquilo | API REST que aprova ou recusa o pagamento por uma regra fixa; não usa RabbitMQ nem banco de dados |
-
-**Por que são três serviços:** o enunciado fala em "conexão para uma API do Banco Tranquilo", em pagamento "confirmado pela API do Banco Tranquilo" e em "executar a API de Integração de Pagamentos". O diagrama da página 4 desenha o Back End API, a caixa assíncrona com a Integração Pagamentos e, fora dela, a API Plataforma de Pagamentos que leva ao Banco Tranquilo. Adotamos a leitura literal do desenho: cada caixa virou um serviço, e a integração fica visível como um processo separado.
-
-A separação `api` + `worker` também segue a demo de mensageria da disciplina (`demo-backend-api` + `demo-backend-worker`).
-
 ---
 
 ## Configuração do Projeto — Spring Initializr
@@ -112,73 +100,34 @@ Dependências que entram no `pom.xml` fora do Initializr:
 
 ## Estrutura do Projeto
 
-Pacotes no plural, por camada. Cada serviço espelha o projeto do professor de mesmo papel: a **api** segue o `RabbitmqSpringEmail` (`configs`, `controllers`, `consumers`, `producers`, `dtos`, `enums`, `entities`, `repositories`, `services`) e o **worker** segue o `demo-backend-worker` (`consumers`, `producers`, `dtos`, `clients`, `configs`).
+Pacotes no plural, por camada, no padrão dos projetos do professor.
 
 ```
 cp5-market-buddies/
-├── marketbuddies-api/                     # loja web + back end (porta 8080)
+├── marketbuddies-api/        # loja web, API REST e mensageria (porta 8080)
 │   └── src/main/
-│       ├── java/br/com/fiap/marketbuddies/api/
-│       │   ├── MarketbuddiesApiApplication.java
-│       │   ├── configs/                   # DataSeeder (ADMIN, cliente de teste, 8 produtos), UserConfig (PasswordEncoder), AdminProperties;
-│       │   │                              #   SecurityConfig e RabbitMQConfig entram nas tarefas de segurança e de mensageria
-│       │   ├── controllers/               # XxxViewController (telas) e XxxApiController (/api/**)
-│       │   │   └── handlers/              # ViewExceptionHandler (páginas de erro) e ApiExceptionHandler (JSON)
-│       │   ├── entities/                  # UserEntity, ProductEntity, OrderEntity, OrderItemEntity, EmailEntity
-│       │   ├── enums/                     # Role, Category, OrderStatus, OrderOrigin, StatusEmail
-│       │   ├── exceptions/                # BusinessException, NotFoundException, OutOfStockException
-│       │   ├── repositories/              # reserva atômica de estoque, devolução e update condicional de status
-│       │   ├── security/                  # (a chegar) JwtUtil e JwtAuthFilter
-│       │   ├── services/                  # (a chegar) UserDetailsServiceImpl, OrderService, EmailService, DashboardService
-│       │   ├── facades/                   # (a chegar) PaymentFacade
-│       │   ├── producers/ consumers/      # (a chegar) pedido de pagamento e respostas
-│       │   └── dtos/                      # (a chegar)
+│       ├── java/.../api/
+│       │   ├── configs/      # segurança, RabbitMQ e dados iniciais
+│       │   ├── controllers/  # telas e /api/**
+│       │   ├── services/     # regras de negócio
+│       │   ├── facades/      # fluxo do pagamento
+│       │   ├── producers/    # publica o pedido de pagamento
+│       │   ├── consumers/    # lê as respostas do pagamento
+│       │   ├── entities/     # tabelas
+│       │   └── repositories/
 │       └── resources/
-│           ├── application.yaml           # lê variáveis de ambiente, com padrão local
-│           ├── static/{css,js,img}/       # CSS do design system, JS do modal e do polling, logos
-│           └── templates/                 # fragments/layout.html, error/*; demais telas a chegar
-├── marketbuddies-worker/                  # integração de pagamentos (sem porta)
-│   └── src/main/java/br/com/fiap/marketbuddies/worker/
-│       ├── configs/                       # RabbitMQConfig (3 exchanges, 3 filas, 3 bindings), RestClientConfig
-│       ├── consumers/                     # PaymentRequestConsumer
-│       ├── producers/                     # PaymentSuccessProducer, PaymentErrorProducer
-│       ├── clients/                       # TranquiloBankClient (RestClient, 3 tentativas)
-│       └── dtos/                          # PaymentRequestDto, PaymentResponseDto, PaymentItemDto, Authorization*Dto
-├── tranquilo-bank/                        # API do banco (porta 8090)
-│   └── src/main/java/br/com/fiap/tranquilobank/
-│       ├── controllers/                   # PaymentController (POST /api/payments/authorize), ApiExceptionHandler
-│       ├── services/                      # AuthorizationService (regra do limite)
-│       └── dtos/                          # AuthorizationRequestDto, AuthorizationResponseDto
-├── docker-compose.yml                     # PostgreSQL + RabbitMQ para rodar local
-├── postman/                               # coleção e JSONs de exemplo
-├── assets/                                # imagens deste README
-├── design/                                # design system e logos do MarketBuddies
-└── integrantes.txt
+│           ├── static/       # CSS, JS e imagens
+│           └── templates/    # telas Thymeleaf
+├── marketbuddies-worker/     # integração de pagamentos (sem porta)
+│   └── src/main/java/.../worker/
+│       ├── consumers/        # lê o pedido de pagamento
+│       ├── clients/          # chama o Tranquilo Bank
+│       └── producers/        # publica a resposta
+├── tranquilo-bank/           # API do banco (porta 8090)
+├── postman/                  # coleção e exemplos de JSON
+├── assets/                   # imagens deste README
+└── docker-compose.yml        # PostgreSQL + RabbitMQ local
 ```
-
----
-
-## Por que X e não Y
-
-### JWT em tudo, e não sessão
-
-A Aula 13 do professor usa JWT com `SessionCreationPolicy.STATELESS`, `JwtAuthFilter` antes do `UsernamePasswordAuthenticationFilter` e `AuthController` com `AuthenticationManager`. Seguimos o mesmo padrão nas telas **e** na API: um só mecanismo de autenticação em vez de `formLogin` com sessão para as telas e token para a API. O que muda em relação à aula é o transporte: nas telas o token viaja num cookie `HttpOnly` (`MB_TOKEN`); na API, no header `Authorization: Bearer`. O mesmo filtro lê os dois.
-
-### Provider automático, sem `DaoAuthenticationProvider`
-
-Na Aula 13, o `SecurityConfig` declara um `DaoAuthenticationProvider` à mão, injeta nele o `UserDetailsService` e o `PasswordEncoder` e o registra com `.authenticationProvider(...)`. Aqui **não declaramos o provider**. Quando o contexto tem exatamente um `UserDetailsService` e um `PasswordEncoder`, o Spring Security monta sozinho um `DaoAuthenticationProvider` com os dois e o usa no `AuthenticationManager`. Nossa aplicação tem exatamente um de cada: `UserDetailsServiceImpl` (lê `TB_USERS` por e-mail) e o `BCryptPasswordEncoder` da `UserConfig`. O resultado é o mesmo, com menos código; o `AuthenticationManager` continua sendo obtido por `authConfig.getAuthenticationManager()`, como na aula. Se um dia houver dois `UserDetailsService`, a montagem automática deixa de valer e o provider passa a ser declarado.
-
-### `PaymentFacade`, como a `PagamentoFacade` da demo
-
-A facade concentra o fluxo do pagamento (criar o pedido, publicar na fila, tratar aprovação, recusa e expiração, reenviar e-mail), e cada service fica com uma responsabilidade. O controller de tela e o da API chamam a mesma facade, então o checkout pela web e pelo Postman passam pelo mesmo caminho. O worker não tem facade, igual à demo: o consumidor chama o `TranquiloBankClient` e o producer.
-
-### Preço calculado e gravado
-
-O produto guarda `cost` (custo) e `markupPercentage` (markup), e a aplicação calcula `price = cost × (1 + markup)` ao salvar (`@PrePersist` / `@PreUpdate`). O formulário não tem campo de preço, então o valor nunca diverge. Gravar o resultado em coluna (em vez de calcular a cada leitura) deixa a vitrine, o dashboard e o print do banco com a mesma leitura simples. Oferta é um percentual à parte (`discountPercentage`); o preço cobrado é `price × (1 − desconto)`.
-
-### Tabelas em inglês com prefixo `TB_`
-
-O enunciado cita `TDS_Sec_MVC_TB_Mercado` e `TDS_Users_Mercado` como **exemplo** de nome. Usamos o padrão `TB_` do `RabbitmqSpringEmail` do professor (`TB_USERS`, `TB_PRODUCTS`, `TB_ORDERS`, `TB_ORDER_ITEMS`, `TB_EMAILS`), com o código todo em inglês. Os textos de tela, as mensagens de erro e o e-mail continuam em português.
 
 ---
 
@@ -224,38 +173,13 @@ Para o envio de e-mail local, exporte `MAIL_USERNAME` e `MAIL_PASSWORD` (senha d
 
 ![Fluxo de segurança com JWT](assets/seguranca-jwt.png)
 
-### Rotas × perfis
+Seguimos o padrão JWT da aula de Spring Security, sem sessão, nas telas e na API. Depois do login, o token vai num cookie protegido nas telas e no header `Authorization: Bearer` na API (Postman). Toda requisição passa pelo mesmo filtro, que valida o token e identifica o usuário.
 
-| Rota | Visitante | CUSTOMER | ADMIN |
-|------|:---------:|:--------:|:-----:|
-| `/`, `/login`, `/signup` | sim | sim | sim |
-| `/products`, `/products/{id}`, `/cart/**` | sim | sim | sim (carrinho bloqueado com aviso) |
-| `/css/**`, `/js/**`, `/img/**`, `/error` | sim | sim | sim |
-| `/checkout/**`, `/orders/**` | redireciona para `/login?redirect=…` | sim (só os próprios pedidos) | 403 |
-| `/admin/**` (dashboard, gestão de produtos) | redireciona para `/login` | 403 | sim |
-| `GET /api/products`, `POST /api/auth/login` | sim | sim | sim |
-| `POST /api/orders` | 401 | sim | 403 |
-| `GET /api/orders/{id}` | 401 | só o dono | sim |
-| `GET /api/emails` | 401 | 403 | sim |
-
-ADMIN não compra: a navbar esconde o carrinho e o checkout devolve 403.
-
-### Fluxo do JWT
-
-1. **Login nas telas:** `POST /login` (e-mail e senha) autentica com o `AuthenticationManager`, gera o token e grava o cookie `MB_TOKEN` (`HttpOnly`, `SameSite=Lax`, `Secure` atrás do https, `Max-Age` igual à expiração). O redirecionamento volta para a página pedida (`redirect`) ou leva ADMIN a `/admin/dashboard` e CUSTOMER a `/products`.
-2. **Login na API:** `POST /api/auth/login` com `{email, password}` devolve `{accessToken, tokenType: "Bearer", expiresIn}`. Credencial errada: 401 "Usuário ou senha inválidos".
-3. **Cada requisição:** o `JwtAuthFilter` lê o token do header `Authorization: Bearer …` ou do cookie `MB_TOKEN`, valida e preenche o `SecurityContext`. É por isso que o `sec:authorize` do Thymeleaf funciona sem sessão.
-4. **Token:** HS256, `sub` = e-mail e claim `role`, expiração de 1 hora (`app.jwt.expiration-ms`); a chave vem de `JWT_SECRET`.
-5. **Logout:** `POST /logout` apaga o cookie e volta para `/login?logout`.
-6. **Falhas:** tela sem token vai para `/login?redirect=<url>`; `/api/**` sem token devolve 401 em JSON; perfil errado devolve a página 403 (telas) ou JSON 403 (API).
-
-### CSRF
-
-Como o cookie de autenticação vai em toda requisição das telas, o **CSRF fica ligado nas telas** (`CookieCsrfTokenRepository.withHttpOnlyFalse()`; o Thymeleaf insere o `_csrf` nos formulários). Em `/api/**` fica **desligado**, porque a API autentica por `Bearer`, que o navegador não envia sozinho.
-
-### Cadastro
-
-E-mail único ("Já existe uma conta com esse e-mail"), senha com no mínimo 6 caracteres, confirmação igual à senha, hash BCrypt. O cadastro sempre cria um CUSTOMER; o ADMIN vem do seed.
+- **Perfis:** o CUSTOMER compra e vê os próprios pedidos; o ADMIN gerencia os produtos e o dashboard e não compra. O visitante navega pela vitrine e pelo carrinho, e só faz login para finalizar a compra.
+- **Sem permissão:** as telas mostram a página 403 e a API responde 401 ou 403 em JSON.
+- **Autenticação automática:** não declaramos o provider de autenticação, como na aula. Com um único serviço de usuários e um único codificador de senha (BCrypt), o Spring Security monta o provider sozinho.
+- **Cadastro:** cria sempre um CUSTOMER, com e-mail único e senha guardada como hash.
+- **CSRF:** fica ligado nas telas, porque o cookie vai sozinho em toda requisição, e desligado na API, que usa o header.
 
 <!-- print pendente: assets/tela-login.png (ver Demonstração Visual) -->
 
@@ -293,7 +217,7 @@ Três exchanges `direct` duráveis, uma por mensagem, como na demo do professor.
 | Resposta aprovada | `payment-response-success-exchange` | `payment-response-success-routing-key` | `payment-response-success-queue` | worker (`PaymentSuccessProducer`) → api (`PaymentResponseSuccessConsumer`) |
 | Resposta recusada | `payment-response-error-exchange` | `payment-response-error-routing-key` | `payment-response-error-queue` | worker (`PaymentErrorProducer`) → api (`PaymentResponseErrorConsumer`) |
 
-As mensagens são JSON (`Jackson2JsonMessageConverter`). Mensagem que falha no consumidor é descartada e logada (`default-requeue-rejected: false`), em vez de voltar à fila em loop.
+As mensagens são JSON (`JacksonJsonMessageConverter`, Jackson 3). Mensagem que falha no consumidor é descartada e logada (`default-requeue-rejected: false`), em vez de voltar à fila em loop.
 
 ### Correspondência com a demo do professor
 
@@ -486,77 +410,6 @@ docker run -p 8090:8090 tranquilo-bank
 ## Modelo de Dados
 
 ![Diagrama ER](assets/diagrama-er.png)
-
-Cinco tabelas, todas novas, criadas pelo Hibernate (`ddl-auto: update`, como na CP4 e no projeto de e-mail do professor). Os dados iniciais vêm de um `CommandLineRunner` (`DataSeeder`) que só insere se a tabela estiver vazia: 1 ADMIN, 1 cliente de teste e 8 produtos.
-
-### `TB_USERS` — `UserEntity`
-
-| Campo | Tipo | Observação |
-|-------|------|-----------|
-| `id` | Long (PK) | identity |
-| `fullName` | String(120) | obrigatório |
-| `email` | String(160) | único, usado como login |
-| `password` | String(100) | hash BCrypt |
-| `role` | enum `Role` | `CUSTOMER` ou `ADMIN` |
-| `createdAt` | LocalDateTime | preenchido ao criar |
-
-### `TB_PRODUCTS` — `ProductEntity`
-
-| Campo | Tipo | Observação |
-|-------|------|-----------|
-| `id` | Long (PK) | identity |
-| `name` | String(80) | obrigatório |
-| `category` | enum `Category` | `PRODUCE`, `CLEANING`, `BEVERAGES`, `BAKERY`, `GROCERY` (rótulo em português por `getLabel()`) |
-| `description` | String(500) | opcional |
-| `cost` | BigDecimal(15,2) | custo |
-| `markupPercentage` | BigDecimal(7,2) | `40.00` = 40% |
-| `price` | BigDecimal(15,2) | **calculado**: `cost × (1 + markup)` |
-| `discountPercentage` | BigDecimal(5,2) | `0` = sem oferta |
-| `stock` | Integer | estoque |
-| `version` | Long (`@Version`) | trava otimista: o admin que edita com estoque desatualizado recebe aviso em vez de apagar uma reserva feita no meio |
-
-O preço cobrado (`finalPrice`) é calculado em tempo de execução, sem coluna.
-
-### `TB_ORDERS` — `OrderEntity`
-
-| Campo | Tipo | Observação |
-|-------|------|-----------|
-| `id` | Long (PK) | identity |
-| `user_id` | FK → `TB_USERS` | o cliente |
-| `status` | enum `OrderStatus` | `AWAITING_PAYMENT`, `APPROVED`, `REFUSED` |
-| `totalAmount` | BigDecimal(15,2) | total do pedido |
-| `createdAt` / `respondedAt` | LocalDateTime | criação e resposta do banco |
-| `authorizationCode` | String(40) | código `TB-…` do banco, quando aprovado |
-| `refusalReason` | String(200) | motivo da recusa |
-| `origin` | enum `OrderOrigin` | `WEB` ou `API` |
-
-### `TB_ORDER_ITEMS` — `OrderItemEntity`
-
-| Campo | Tipo | Observação |
-|-------|------|-----------|
-| `id` | Long (PK) | identity |
-| `order_id` | FK → `TB_ORDERS` | obrigatório |
-| `product_id` | FK → `TB_PRODUCTS` | **anulável**: fica nulo se o produto for excluído |
-| `productName` | String(80) | cópia do nome |
-| `category` | enum `Category` | cópia, para o gráfico por categoria |
-| `quantity` | Integer | — |
-| `unitPrice` | BigDecimal(15,2) | preço final do dia (com oferta) |
-| `unitCost` | BigDecimal(15,2) | custo do dia |
-
-**Foto do momento.** O item do pedido copia nome, categoria, preço e custo da hora da compra. Editar ou excluir o produto depois não pode mudar o que foi vendido, nem o lucro, nem o gráfico por categoria. A cópia é histórica, não uma duplicação do cadastro; por isso `product_id` é anulável e a exclusão de um produto já vendido apenas solta a referência.
-
-### `TB_EMAILS` — `EmailEntity`
-
-| Campo | Tipo | Observação |
-|-------|------|-----------|
-| `id` | Long (PK) | identity |
-| `order_id` | FK → `TB_ORDERS` | pedido que gerou o e-mail |
-| `emailFrom` / `emailTo` | String(160) | remetente e destinatário |
-| `subject` | String(200) | assunto |
-| `text` | TEXT | corpo |
-| `sendDateEmail` | LocalDateTime | quando foi tentado |
-| `statusEmail` | enum `StatusEmail` | `SENT` ou `ERROR` |
-| `errorMessage` (`error_message`) | String(500) | mensagem do SMTP, quando `ERROR` |
 
 <!-- print pendente: assets/banco-tabelas.png (as 5 tabelas no PostgreSQL) -->
 
@@ -880,20 +733,3 @@ Tela `/admin/dashboard` (ADMIN), com Chart.js. Os dados vêm do banco; o lucro u
 - **Postman**
 - **Docker** e **Railway**
 - **Maven**
-
----
-
-## Roteiro do Vídeo (5–7 min)
-
-| Tempo | O que mostrar |
-|-------|---------------|
-| 0:00–0:30 | Apresentação do grupo e dos 3 serviços, com o diagrama de arquitetura |
-| 0:30–1:30 | **Código:** `SecurityConfig` e `JwtAuthFilter`; `PaymentFacade`; `RabbitMQConfig`; `TranquiloBankClient`; `EmailService` |
-| 1:30–2:30 | **Telas:** landing, login (erro e cadastro), vitrine, detalhe e página 403 para o cliente |
-| 2:30–3:30 | **Compra aprovada:** carrinho de visitante → login → checkout → pedido aguardando → confirmado |
-| 3:30–4:00 | **Compra recusada:** acima de R$ 500,00, motivo na tela e "Tentar de novo" |
-| 4:00–4:45 | **Painel do RabbitMQ:** exchanges, filas, mensagens trafegadas e o teste interno de publicação |
-| 4:45–5:30 | **Postman:** login que grava o token, compra aprovada, recusada e sem estoque |
-| 5:30–6:00 | **E-mail** recebido no Gmail e registro `SENT` em `TB_EMAILS` |
-| 6:00–6:45 | **Dashboard** da gerência e gestão de produtos (CRUD pelo modal) |
-| 6:45–7:00 | Deploy no Railway e encerramento |
