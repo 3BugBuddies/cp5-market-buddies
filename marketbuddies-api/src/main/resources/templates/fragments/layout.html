@@ -60,7 +60,8 @@
                 <th:block th:unless="${cartPreview == null or cartPreview.empty}">
                     <ul class="mb-cart-preview__items">
                         <li class="mb-cart-preview__item" th:each="it, st : ${cartPreview.items}" th:if="${st.index < 4}">
-                            <span class="mb-cart-preview__thumb"></span>
+                            <span class="mb-cart-preview__thumb"><img th:if="${it.imagePath != null}" th:src="@{${it.imagePath}}"
+                                    th:alt="${it.name}" loading="lazy" width="40" height="40"></span>
                             <span class="mb-cart-preview__info">
                                 <span class="mb-cart-preview__name" th:text="${it.name}">Café torrado e moído 500 g</span>
                                 <span class="mb-cart-preview__qty"
