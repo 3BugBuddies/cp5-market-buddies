@@ -5,10 +5,13 @@ import br.com.fiap.marketbuddies.api.dtos.OrderRequestDto;
 import br.com.fiap.marketbuddies.api.enums.OrderOrigin;
 import br.com.fiap.marketbuddies.api.facades.PaymentFacade;
 import br.com.fiap.marketbuddies.api.security.AuthUser;
+import br.com.fiap.marketbuddies.api.services.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,13 +21,14 @@ import java.net.URI;
 
 // Compra pela API (Postman). Bearer de CUSTOMER (SecurityConfig); o comprador é o dono do token.
 // 202 Accepted: o pedido foi criado e aguarda o banco. 400 corpo inválido e 409 sem estoque vêm do ApiExceptionHandler.
-// GET /api/orders/{id} entra na T7.
+// GET /api/orders/{id}: o dono ou o ADMIN; pedido de outro cliente responde 404, como se não existisse.
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
 public class OrderApiController {
 
     private final PaymentFacade paymentFacade;
+    private final OrderService orderService;
 
     @PostMapping
     public ResponseEntity<OrderDto> create(@Valid @RequestBody OrderRequestDto request,
@@ -33,5 +37,11 @@ public class OrderApiController {
         return ResponseEntity.accepted()
                 .location(URI.create("/api/orders/" + order.getId()))
                 .body(order);
+    }
+
+    @GetMapping("/{id}")
+    public OrderDto get(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
+        boolean admin = user.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+        return orderService.getOrder(id, user.getId(), admin);
     }
 }

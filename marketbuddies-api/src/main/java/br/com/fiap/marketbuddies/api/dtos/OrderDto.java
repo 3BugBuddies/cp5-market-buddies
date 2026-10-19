@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// Resposta única do pedido (POST /api/orders e, na T7, GET /api/orders/{id}).
+// Resposta única do pedido (POST /api/orders, GET /api/orders/{id} e a tela do pedido).
 // Campos da resposta do banco ficam nulos enquanto o pedido aguarda pagamento.
 @Data
 @NoArgsConstructor
@@ -27,7 +27,7 @@ public class OrderDto {
     private LocalDateTime respondedAt;
     private String authorizationCode;
     private String refusalReason;
-    // Status do último e-mail do pedido; preenchido pela T7.
+    // Status do último e-mail do pedido (OrderService.getOrder); nulo enquanto não houver e-mail.
     private StatusEmail statusEmail;
     private List<Item> items;
 

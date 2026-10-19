@@ -2,6 +2,7 @@ package br.com.fiap.marketbuddies.api.repositories;
 
 import br.com.fiap.marketbuddies.api.entities.OrderEntity;
 import br.com.fiap.marketbuddies.api.enums.OrderStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
@@ -32,4 +34,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     // Pedidos parados em AWAITING_PAYMENT, para o job de expiração (P1).
     List<OrderEntity> findByStatusAndCreatedAtBefore(OrderStatus status, LocalDateTime limit);
+
+    // Pedido com cliente, itens e produto dos itens já carregados: a tela, a API e o e-mail
+    // leem tudo fora da transação (open-in-view desligado).
+    @EntityGraph(attributePaths = {"customer", "items", "items.product"})
+    Optional<OrderEntity> findDetailedById(Long id);
 }
