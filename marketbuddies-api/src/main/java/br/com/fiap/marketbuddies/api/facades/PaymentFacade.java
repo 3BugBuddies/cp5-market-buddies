@@ -49,7 +49,7 @@ public class PaymentFacade {
     // para uma compra que existe. O pedido fica aguardando e o job de expiração (P1, T7) o recusa e devolve o estoque.
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderCreated(OrderCreatedEvent event) {
-        Long orderId = event.paymentRequest().getOrderId();
+        Long orderId = event.paymentRequest().orderId();
         try {
             paymentRequestProducer.send(event.paymentRequest());
             log.info("Pedido {} publicado na payment-request-queue", orderId);
@@ -82,7 +82,7 @@ public class PaymentFacade {
     // P5: reenvio pelo dashboard (botão da T8). Só pedido aprovado; grava uma nova linha em TB_EMAILS.
     public StatusEmail resendEmail(Long orderId) {
         OrderDto order = orderService.getOrder(orderId, null, true);
-        if (order.getStatus() != OrderStatus.APPROVED) {
+        if (order.status() != OrderStatus.APPROVED) {
             throw new BusinessException("Só pedido aprovado recebe e-mail de confirmação");
         }
         return emailService.sendConfirmation(orderId);

@@ -9,7 +9,6 @@ import br.com.fiap.marketbuddies.api.repositories.OrderItemRepository;
 import br.com.fiap.marketbuddies.api.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,7 @@ public class ProductService {
         List<ProductEntity> products = category == null
                 ? productRepository.findByNameContainingIgnoreCaseOrderByIdAsc(name)
                 : productRepository.findByNameContainingIgnoreCaseAndCategoryOrderByIdAsc(name, category);
-        return products.stream().map(p -> toDto(p, false)).toList();
+        return products.stream().map(p -> ProductDto.from(p, false)).toList();
     }
 
     // Ofertas da semana na landing.
@@ -43,36 +42,34 @@ public class ProductService {
         return productRepository
                 .findTop4ByDiscountPercentageGreaterThanAndStockGreaterThanOrderByDiscountPercentageDescIdAsc(
                         BigDecimal.ZERO, 0)
-                .stream().map(p -> toDto(p, false)).toList();
+                .stream().map(p -> ProductDto.from(p, false)).toList();
     }
 
     @Transactional(readOnly = true)
     public ProductDto findForCatalog(Long id) {
-        return toDto(find(id), false);
+        return ProductDto.from(find(id), false);
     }
 
     // Tabela da gestão: com custo, markup e versão (só a tela de ADMIN usa).
     @Transactional(readOnly = true)
     public List<ProductDto> listForAdmin() {
-        return productRepository.findAll(Sort.by("id")).stream().map(p -> toDto(p, true)).toList();
+        return productRepository.findAll(Sort.by("id")).stream().map(p -> ProductDto.from(p, true)).toList();
     }
 
     // Valores atuais do banco, para reabrir o modal depois de um conflito de versão.
     @Transactional(readOnly = true)
     public ProductFormDto findForm(Long id) {
-        ProductFormDto form = new ProductFormDto();
-        BeanUtils.copyProperties(find(id), form);
-        return form;
+        return ProductFormDto.from(find(id));
     }
 
     @Transactional
     public ProductDto create(ProductFormDto form) {
         ProductEntity product = new ProductEntity();
-        BeanUtils.copyProperties(form, product, "id", "version");
+        apply(form, product);
         normalize(product);
         ProductEntity saved = productRepository.save(product);
         log.info("Produto {} criado: {}", saved.getId(), saved.getName());
-        return toDto(saved, true);
+        return ProductDto.from(saved, true);
     }
 
     // P3: a versão do form precisa ser a do banco. Se uma compra (reserve) ou outro admin mexeu no produto
@@ -82,14 +79,14 @@ public class ProductService {
     @Transactional
     public ProductDto update(Long id, ProductFormDto form) {
         ProductEntity product = find(id);
-        if (!Objects.equals(form.getVersion(), product.getVersion())) {
+        if (!Objects.equals(form.version(), product.getVersion())) {
             throw new ObjectOptimisticLockingFailureException(ProductEntity.class, id);
         }
-        BeanUtils.copyProperties(form, product, "id", "version");
+        apply(form, product);
         normalize(product);
         productRepository.saveAndFlush(product);
         log.info("Produto {} atualizado", id);
-        return toDto(product, true);
+        return ProductDto.from(product, true);
     }
 
     // P2: produto já vendido não quebra por FK. Os itens antigos perdem o vínculo (product_id = null)
@@ -115,14 +112,14 @@ public class ProductService {
         }
     }
 
-    private static ProductDto toDto(ProductEntity product, boolean withInternalData) {
-        ProductDto dto = new ProductDto();
-        BeanUtils.copyProperties(product, dto, "cost", "markupPercentage", "version");
-        if (withInternalData) {
-            dto.setCost(product.getCost());
-            dto.setMarkupPercentage(product.getMarkupPercentage());
-            dto.setVersion(product.getVersion());
-        }
-        return dto;
+    // Campos editáveis do form; id e versão nunca vêm do form (o id é o da rota e a versão é do Hibernate).
+    private static void apply(ProductFormDto form, ProductEntity product) {
+        product.setName(form.name());
+        product.setCategory(form.category());
+        product.setDescription(form.description());
+        product.setCost(form.cost());
+        product.setMarkupPercentage(form.markupPercentage());
+        product.setDiscountPercentage(form.discountPercentage());
+        product.setStock(form.stock());
     }
 }
