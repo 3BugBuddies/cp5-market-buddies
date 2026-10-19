@@ -19,8 +19,14 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 
 > O deploy roda no plano de teste do Railway, que tem **crédito limitado**. Previsão de ficar no ar até **01/11/2026** (consumo medido: ~886 MB de RAM somados nos 5 serviços, ~US$ 0,32/dia). Depois disso, a aplicação pode ficar indisponível; o vídeo e os prints deste README mostram o fluxo completo.
 
-<!-- print pendente: assets/railway-servicos.png -->
-<!-- print pendente: assets/railway-deploy.png -->
+<!-- print pendente: descomentar quando os prints existirem
+<table>
+  <tr>
+    <td align="center" valign="top"><a href="assets/railway-servicos.png"><img src="assets/railway-servicos.png" alt="Railway: os 5 serviços" width="420"></a><br><sub>Railway: os 5 serviços</sub></td>
+    <td align="center" valign="top"><a href="assets/railway-deploy.png"><img src="assets/railway-deploy.png" alt="Landing no domínio público" width="420"></a><br><sub>Landing no domínio público</sub></td>
+  </tr>
+</table>
+-->
 
 ---
 
@@ -173,7 +179,7 @@ Seguimos o padrão JWT da aula de Spring Security, sem sessão, nas telas e na A
 - **Cadastro:** cria sempre um CUSTOMER, com e-mail único e senha guardada como hash.
 - **CSRF:** fica ligado nas telas, porque o cookie vai sozinho em toda requisição, e desligado na API, que usa o header.
 
-<!-- print pendente: assets/tela-login.png -->
+<a href="assets/tela-login.png"><img src="assets/tela-login.png" alt="Tela de login com as contas de teste" width="640"></a>
 
 ---
 
@@ -253,7 +259,7 @@ O `TranquiloBankClient` tenta **3 vezes**, com 1 segundo de espera entre elas. S
 
 O pedido nasce `AWAITING_PAYMENT`, com o estoque já reservado de forma atômica, e só é publicado na fila **depois do commit**. A resposta muda o status por um `update` condicional (`… where status = 'AWAITING_PAYMENT'`): resposta repetida ou concorrente recebe 0 linhas e é ignorada, sem segundo e-mail nem segunda devolução de estoque. Um job marca como REFUSED ("Tempo esgotado") o pedido que fica mais de 5 minutos sem resposta.
 
-<!-- print pendente: assets/worker-log.png (log do worker/banco com "APROVADO TB-…") -->
+O log do worker com um pedido aprovado e outro recusado está na grade do [Painel do RabbitMQ](#painel-do-rabbitmq-e-testes-internos).
 
 ---
 
@@ -272,8 +278,14 @@ O envio acontece depois que o status do pedido foi gravado, para não segurar co
 
 > **E-mail no deploy:** o plano Trial do Railway bloqueia SMTP de saída ("SMTP is only available on the Pro plan and above", [documentação](https://docs.railway.com/reference/outbound-networking)). Por isso, no deploy o envio fica registrado como `ERROR` (timeout na porta 587), e o resto do fluxo funciona normalmente. Rodando local, o e-mail chega, como mostra o vídeo. O ADMIN pode usar "Reenviar e-mail" no dashboard.
 
-<!-- print pendente: assets/email-confirmacao.png -->
-<!-- print pendente: assets/banco-emails.png (select em TB_EMAILS com SENT/ERROR) -->
+<!-- print pendente: descomentar quando os prints existirem
+<table>
+  <tr>
+    <td align="center" valign="top"><a href="assets/email-confirmacao.png"><img src="assets/email-confirmacao.png" alt="E-mail recebido no Gmail" width="420"></a><br><sub>E-mail recebido no Gmail</sub></td>
+    <td align="center" valign="top"><a href="assets/banco-emails.png"><img src="assets/banco-emails.png" alt="TB_EMAILS com SENT e ERROR" width="420"></a><br><sub>TB_EMAILS com SENT e ERROR</sub></td>
+  </tr>
+</table>
+-->
 
 ---
 
@@ -388,19 +400,13 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 { "accessToken": "eyJhbGciOiJIUzI1NiJ9...", "tokenType": "Bearer", "expiresIn": 3600000 }
 ```
 
-<!-- print pendente: assets/postman-login.png -->
-
 **2. Login inválido** — mesma request com senha errada, resposta `401`.
 
 ```json
 { "timestamp": "2026-10-18T20:50:00", "status": 401, "error": "Unauthorized", "message": "Usuário ou senha inválidos", "path": "/api/auth/login" }
 ```
 
-<!-- print pendente: assets/postman-login-invalido.png -->
-
 **3. Listar produtos** — `GET {{api}}/api/products`, público, resposta `200` com a lista de produtos (com preço, preço final e desconto; sem custo nem markup).
-
-<!-- print pendente: assets/postman-produtos.png -->
 
 **4. Compra aprovada** — `POST {{api}}/api/orders`, `Bearer`, total de R$ 30,47 (abaixo do limite), resposta `202 Accepted` com `Location: /api/orders/42`. O comprador é o dono do token.
 
@@ -422,8 +428,6 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 }
 ```
 
-<!-- print pendente: assets/postman-compra-aprovada.png -->
-
 **5. Consultar pedido aprovado** — `GET {{api}}/api/orders/{{orderId}}` cerca de 2 s depois, resposta `200`.
 
 ```json
@@ -443,8 +447,6 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
   ]
 }
 ```
-
-<!-- print pendente: assets/postman-pedido-aprovado.png -->
 
 **6. Compra recusada (acima de R$ 500)** — `POST {{api}}/api/orders`, 17 cafés + 21 maçãs = R$ 524,08. Responde `202` (o pedido nasce aguardando) e, na consulta seguinte, `REFUSED`.
 
@@ -466,23 +468,17 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 }
 ```
 
-<!-- print pendente: assets/postman-compra-recusada.png -->
-
 **7. Compra sem estoque** — `POST {{api}}/api/orders` com `quantity` 999, resposta `409`; nenhum item baixa.
 
 ```json
 { "timestamp": "2026-10-18T20:54:00", "status": 409, "error": "Conflict", "message": "Sem estoque para Café torrado e moído 500 g (pedido 999, disponível 18)", "path": "/api/orders" }
 ```
 
-<!-- print pendente: assets/postman-sem-estoque.png -->
-
 **8. Compra sem token** — `POST {{api}}/api/orders` sem o header `Authorization`, resposta `401`.
 
 ```json
 { "timestamp": "2026-10-18T20:54:30", "status": 401, "error": "Unauthorized", "message": "Autenticação necessária", "path": "/api/orders" }
 ```
-
-<!-- print pendente: assets/postman-sem-token.png -->
 
 **9. Corpo inválido** — `POST {{api}}/api/orders` com `{ "items": [] }`, resposta `400`.
 
@@ -497,11 +493,7 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 }
 ```
 
-<!-- print pendente: assets/postman-corpo-invalido.png -->
-
 **10. E-mails enviados** — `GET {{api}}/api/emails` com o `Bearer` de ADMIN, resposta `200` com os registros de `TB_EMAILS` (`SENT`/`ERROR`), do mais recente ao mais antigo.
-
-<!-- print pendente: assets/postman-emails.png -->
 
 **11. Tranquilo Bank — aprovado** — `POST {{bank}}/api/payments/authorize`, resposta `200`.
 
@@ -513,15 +505,11 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 { "orderId": 42, "approved": true, "authorizationCode": "TB-7F3A9C21", "reason": null, "processedAt": "2026-10-18T20:52:01" }
 ```
 
-<!-- print pendente: assets/postman-banco-aprovado.png -->
-
 **12. Tranquilo Bank — recusado** — mesma request com `"amount": 523.88`, resposta `200`.
 
 ```json
 { "orderId": 43, "approved": false, "authorizationCode": null, "reason": "Valor acima do limite de R$ 500,00", "processedAt": "2026-10-18T20:53:01" }
 ```
-
-<!-- print pendente: assets/postman-banco-recusado.png -->
 
 **13. Tranquilo Bank — inválido** — mesma request sem `amount`, resposta `400`.
 
@@ -536,13 +524,40 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 }
 ```
 
-<!-- print pendente: assets/postman-banco-invalido.png -->
-
 **Collection Runner** — todos os testes da coleção passando.
 
-<!-- print pendente: assets/postman-runner.png -->
-
 > Os JSONs acima são os de `postman/exemplos.md`. Datas, ids e códigos de autorização mudam a cada execução.
+
+### Prints
+
+<!-- print pendente: descomentar quando os prints existirem
+<table>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-login.png"><img src="assets/postman-login.png" alt="Login (cliente)" width="280"></a><br><sub>Login (cliente)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-login-invalido.png"><img src="assets/postman-login-invalido.png" alt="Login inválido (401)" width="280"></a><br><sub>Login inválido (401)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produtos.png"><img src="assets/postman-produtos.png" alt="Listar produtos" width="280"></a><br><sub>Listar produtos</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-compra-aprovada.png"><img src="assets/postman-compra-aprovada.png" alt="Compra aprovada (202)" width="280"></a><br><sub>Compra aprovada (202)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-pedido-aprovado.png"><img src="assets/postman-pedido-aprovado.png" alt="Pedido aprovado" width="280"></a><br><sub>Pedido aprovado</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-compra-recusada.png"><img src="assets/postman-compra-recusada.png" alt="Compra recusada" width="280"></a><br><sub>Compra recusada</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-sem-estoque.png"><img src="assets/postman-sem-estoque.png" alt="Sem estoque (409)" width="280"></a><br><sub>Sem estoque (409)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-sem-token.png"><img src="assets/postman-sem-token.png" alt="Sem token (401)" width="280"></a><br><sub>Sem token (401)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-corpo-invalido.png"><img src="assets/postman-corpo-invalido.png" alt="Corpo inválido (400)" width="280"></a><br><sub>Corpo inválido (400)</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-emails.png"><img src="assets/postman-emails.png" alt="E-mails (ADMIN)" width="280"></a><br><sub>E-mails (ADMIN)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-banco-aprovado.png"><img src="assets/postman-banco-aprovado.png" alt="Banco: aprovado" width="280"></a><br><sub>Banco: aprovado</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-banco-recusado.png"><img src="assets/postman-banco-recusado.png" alt="Banco: recusado" width="280"></a><br><sub>Banco: recusado</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-banco-invalido.png"><img src="assets/postman-banco-invalido.png" alt="Banco: inválido (400)" width="280"></a><br><sub>Banco: inválido (400)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-runner.png"><img src="assets/postman-runner.png" alt="Collection Runner" width="280"></a><br><sub>Collection Runner</sub></td>
+  </tr>
+</table>
+-->
 
 ---
 
@@ -550,24 +565,27 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 
 Painel no Railway: https://rabbitmq-production-e3dc.up.railway.app (usuário e senha no `.txt` da entrega). Local: http://localhost:15672.
 
-- **Exchanges** — as três `direct`.
+Clique numa imagem para ver em tamanho real.
 
-  ![Exchanges no painel do RabbitMQ](assets/rabbitmq-exchanges.png)
-- **Conexões** — a api e o worker conectados.
-
-  ![Conexões no painel do RabbitMQ](assets/rabbitmq-conexoes.png)
-- **Filas** — as três filas.
-
-  ![Filas no painel do RabbitMQ](assets/rabbitmq-filas.png)
-- **Mensagem** — "Get messages" mostrando o JSON de um pedido.
-  <!-- print pendente: assets/rabbitmq-mensagem.png -->
+<table>
+  <tr>
+    <td align="center" valign="top"><a href="assets/rabbitmq-exchanges.png"><img src="assets/rabbitmq-exchanges.png" alt="Exchanges: as três direct" width="280"></a><br><sub>Exchanges: as três direct</sub></td>
+    <td align="center" valign="top"><a href="assets/rabbitmq-conexoes.png"><img src="assets/rabbitmq-conexoes.png" alt="Conexões: api e worker" width="280"></a><br><sub>Conexões: api e worker</sub></td>
+    <td align="center" valign="top"><a href="assets/rabbitmq-filas.png"><img src="assets/rabbitmq-filas.png" alt="Filas: as três filas" width="280"></a><br><sub>Filas: as três filas</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/rabbitmq-mensagem.png"><img src="assets/rabbitmq-mensagem.png" alt="Get messages: JSON do pedido na fila" width="280"></a><br><sub>Get messages: JSON do pedido na fila</sub></td>
+    <td align="center" valign="top"><a href="assets/rabbitmq-publicar.png"><img src="assets/rabbitmq-publicar.png" alt="Teste interno: Publish message" width="280"></a><br><sub>Teste interno: Publish message</sub></td>
+    <td align="center" valign="top"><a href="assets/worker-log.png"><img src="assets/worker-log.png" alt="Log do worker: aprovado e recusado" width="280"></a><br><sub>Log do worker: aprovado e recusado</sub></td>
+  </tr>
+</table>
 
 ### Testes internos (RabbitMQ Monitor)
 
 O enunciado pede "testes internos do RabbitMQ Monitor". Roteiro:
 
 1. **Publicar pelo painel:** em `payment-request-exchange`, "Publish message" com um `PaymentRequestDto` e routing key `payment-request-routing-key`. Esperado: uma mensagem chega em `payment-response-success-queue` (valor até R$ 500,00) ou em `payment-response-error-queue` (valor acima).
-   <!-- print pendente: assets/rabbitmq-publicar.png -->
+   O print "Teste interno: Publish message" na grade acima mostra esse passo em produção.
 2. **Banco parado:** com o `tranquilo-bank` desligado, publicar de novo. Esperado: depois de 3 tentativas, uma mensagem em `payment-response-error-queue` com "Banco indisponível".
 3. **Resposta repetida:** reenviar na fila de sucesso a resposta de um pedido já aprovado. Esperado: nada muda na tela e nenhuma linha nova no banco (log "resposta ignorada").
 4. **Compra de ponta a ponta:** comprar pela tela e acompanhar os contadores das três filas.
@@ -584,7 +602,7 @@ Tela `/admin/dashboard` (ADMIN), com Chart.js. Os dados vêm do banco; o lucro u
 
 **Últimas 10 compras:** tabela com badge de pagamento e de e-mail e o botão "Reenviar e-mail" para pedido aprovado sem e-mail ou com `ERROR`.
 
-<!-- print pendente: assets/tela-dashboard.png -->
+<a href="assets/tela-dashboard.png"><img src="assets/tela-dashboard.png" alt="Dashboard da gerência no deploy" width="640"></a>
 
 ---
 
