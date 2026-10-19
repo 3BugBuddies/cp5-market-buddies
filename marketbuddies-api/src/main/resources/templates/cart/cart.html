@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Carrinho')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('nenhum')}"></header>
+<main class="mb-page" style="flex: 1">
+    <div class="mb-container">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <!-- Avisos do carrinho: limite de estoque (warning) e produto que saiu do catálogo (notices) -->
+        <div class="mb-stack" style="margin-bottom: var(--mb-space-4)"
+             th:if="${warning != null or (notices != null and !#lists.isEmpty(notices)) or !#lists.isEmpty(cart.notices)}">
+            <div th:if="${warning != null}" class="mb-alert mb-alert--warning" role="status">
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+                <span th:text="${warning}">Ajustamos a quantidade.</span>
+            </div>
+            <div th:each="n : ${notices}" class="mb-alert mb-alert--warning" role="status">
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+                <span th:text="${n}">Produto saiu do catálogo.</span>
+            </div>
+            <div th:each="n : ${cart.notices}" class="mb-alert mb-alert--warning" role="status">
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+                <span th:text="${n}">Produto saiu do catálogo.</span>
+            </div>
+        </div>
+
+        <div class="mb-page-header"><h1>Seu carrinho</h1><a th:href="@{/products}">Continuar comprando</a></div>
+
+        <div th:if="${cart.empty}" class="mb-card mb-empty">
+            <span class="mb-empty__art"><svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"></circle><circle cx="17" cy="19" r="2"></circle><path d="M17 17H6V3H4"></path><path d="M6 5l14 1-1 7H6"></path></svg></span>
+            <h2 class="mb-empty__title">Seu carrinho está vazio</h2>
+            <p>Bora às compras?</p>
+            <a class="mb-btn mb-btn--primary" th:href="@{/products}">Ver produtos</a>
+        </div>
+
+        <div th:unless="${cart.empty}" style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+            <div class="mb-table-wrap" style="flex: 999 1 560px; min-width: 0">
+                <table class="mb-table">
+                    <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th class="mb-num">Preço</th>
+                        <th class="mb-num">Quantidade</th>
+                        <th class="mb-num">Subtotal</th>
+                        <th class="mb-num"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Remover</span></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="it : ${cart.items}">
+                        <td>
+                            <div style="display: flex; flex-direction: column">
+                                <span style="font-weight: 500" th:text="${it.name}">Café torrado e moído 500 g</span>
+                                <span style="font-size: var(--mb-fs-xs); color: var(--mb-ink-600)"
+                                      th:text="${(it.onSale ? 'Em oferta · ' : '') + 'Estoque disponível: ' + it.stock}">Estoque disponível: 18</span>
+                                <span th:if="${it.overStock}" style="font-size: var(--mb-fs-xs); color: var(--mb-red-600); font-weight: 500"
+                                      th:text="${it.stock > 0 ? 'Só restam ' + it.stock + ' unidades. Ajuste a quantidade.' : 'Esgotado. Remova o item para continuar.'}">Só restam 3 unidades.</span>
+                            </div>
+                        </td>
+                        <td class="mb-num" th:text="${'R$ ' + #numbers.formatDecimal(it.unitPrice, 1, 'POINT', 2, 'COMMA')}">R$ 18,71</td>
+                        <td class="mb-num">
+                            <!-- Stepper sem JS: cada botão envia a nova quantidade -->
+                            <form th:action="@{/cart/update}" method="post" style="display: inline-flex">
+                                <input type="hidden" name="productId" th:value="${it.productId}">
+                                <div class="mb-stepper">
+                                    <button type="submit" name="quantity" th:value="${it.quantity - 1}" aria-label="Diminuir"
+                                            th:disabled="${it.quantity <= 1}">−</button>
+                                    <span th:text="${it.quantity}">1</span>
+                                    <button type="submit" name="quantity" th:value="${it.quantity + 1}" aria-label="Aumentar"
+                                            th:disabled="${it.quantity >= it.stock}">+</button>
+                                </div>
+                            </form>
+                        </td>
+                        <td class="mb-num" style="font-weight: 700" th:text="${'R$ ' + #numbers.formatDecimal(it.subtotal, 1, 'POINT', 2, 'COMMA')}">R$ 18,71</td>
+                        <td class="mb-num">
+                            <form th:action="@{/cart/remove}" method="post" style="display: inline">
+                                <input type="hidden" name="productId" th:value="${it.productId}">
+                                <button class="mb-btn mb-btn--ghost mb-btn--sm" type="submit"
+                                        th:attr="aria-label=${'Remover ' + it.name}" title="Remover">
+                                    <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path></svg>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <aside class="mb-card" style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+                <h2 class="mb-card__title" style="margin: 0">Resumo</h2>
+                <div class="mb-row mb-muted">
+                    <span th:text="${cart.totalQuantity == 1 ? '1 item' : cart.totalQuantity + ' itens'}">4 itens</span>
+                    <span th:text="${'R$ ' + #numbers.formatDecimal(cart.total, 1, 'POINT', 2, 'COMMA')}">R$ 34,83</span>
+                </div>
+                <div class="mb-row mb-muted"><span>Entrega</span><span>Grátis</span></div>
+                <div class="mb-row mb-row--total">
+                    <span>Total</span>
+                    <span th:text="${'R$ ' + #numbers.formatDecimal(cart.total, 1, 'POINT', 2, 'COMMA')}">R$ 34,83</span>
+                </div>
+                <th:block sec:authorize="isAnonymous()">
+                    <a class="mb-btn mb-btn--buy mb-btn--block" th:href="@{/login(redirect='/checkout')}">Entrar para finalizar</a>
+                    <p style="margin: 0; font-size: var(--mb-fs-xs); color: var(--mb-ink-600); text-align: center">Você entra ou cria a conta e volta direto para o pagamento.</p>
+                </th:block>
+                <th:block sec:authorize="hasRole('CUSTOMER')">
+                    <a class="mb-btn mb-btn--buy mb-btn--block" th:href="@{/checkout}">Finalizar compra</a>
+                    <p style="margin: 0; font-size: var(--mb-fs-xs); color: var(--mb-ink-600); text-align: center">Você revisa os itens antes de pagar.</p>
+                </th:block>
+            </aside>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
