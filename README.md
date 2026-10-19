@@ -1,8 +1,11 @@
 # MarketBuddies — CheckPoint 5 | Java Advanced
 
-Mercado express com loja web autenticada (Spring Security + Thymeleaf + PostgreSQL) e pagamento assíncrono pelo **Tranquilo Bank** via RabbitMQ, com e-mail de confirmação e dashboard da gerência. Entrega única das Partes I e II do CheckPoint 5 da disciplina de Java Advanced (TDS) — FIAP.
+Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + PostgreSQL) e pagamento assíncrono pelo **Tranquilo Bank** via RabbitMQ, com e-mail de confirmação e dashboard da gerência. Entrega única das **Partes I e II** do CheckPoint 5 da disciplina de Java Advanced (TDS) — FIAP.
 
-> Em construção. As seções marcadas com _a preencher_ entram conforme a implementação avança.
+- **Parte I:** loja web com landing, login e cadastro próprios, perfis CUSTOMER e ADMIN, CRUD de produtos pelo ADMIN e página 403 estilizada, tudo no PostgreSQL.
+- **Parte II:** carrinho, checkout, pedido de pagamento publicado no RabbitMQ, integração com o Tranquilo Bank, resposta assíncrona, e-mail de confirmação registrado no banco e dashboard da gerência.
+
+> Rascunho em construção. Os trechos marcados com _a preencher_ e os comentários `print pendente` entram quando o sistema estiver rodando.
 
 ---
 
@@ -10,12 +13,16 @@ Mercado express com loja web autenticada (Spring Security + Thymeleaf + PostgreS
 
 | Recurso | URL |
 |---------|-----|
-| Aplicação (Railway) | _a preencher_ |
-| Login | _a preencher_ |
-| Painel do RabbitMQ | _a preencher_ |
+| Aplicação — MarketBuddies API (Railway) | https://marketbuddies-api-production.up.railway.app |
+| Login | https://marketbuddies-api-production.up.railway.app/login |
+| Tranquilo Bank (API de pagamentos) | https://tranquilo-bank-production.up.railway.app |
+| Painel do RabbitMQ | https://rabbitmq-production-e3dc.up.railway.app |
 | Vídeo | _a preencher_ |
 
-> O deploy roda no plano de teste do Railway, que tem crédito limitado. Data estimada até quando os serviços ficam no ar: _a preencher após a medição de consumo_.
+> O deploy roda no plano de teste do Railway, que tem **crédito limitado**. Os serviços ficam no ar até aproximadamente _a preencher após a medição de consumo_ (data). Depois disso, a aplicação pode ficar indisponível; o vídeo e os prints deste README mostram o fluxo completo.
+
+<!-- print pendente: assets/railway-servicos.png -->
+<!-- print pendente: assets/railway-deploy.png -->
 
 ---
 
@@ -35,93 +42,75 @@ Mercado express com loja web autenticada (Spring Security + Thymeleaf + PostgreS
 
 ## Arquitetura
 
-Três serviços Spring Boot no mesmo repositório, um para cada caixa do diagrama do enunciado (Back End API, Integração Pagamentos e API do Banco Tranquilo). A separação segue a demo de mensageria da disciplina (`demo-backend-api` + `demo-backend-worker`):
-
-```mermaid
-flowchart LR
-    U[Navegador / Postman] --> API[MarketBuddies API]
-    API -->|pedido de pagamento| Q1[(fila de pedidos)]
-    Q1 --> W[MarketBuddies Worker]
-    W -->|HTTP| TB[Tranquilo Bank]
-    TB -->|aprovado ou recusado| W
-    W -->|resposta| Q2[(fila de respostas)]
-    Q2 --> API
-    API --> DB[(PostgreSQL)]
-    API --> M[Gmail]
-```
-
-| Serviço | Pasta | Caixa do diagrama | Papel |
-|---------|-------|-------------------|-------|
-| MarketBuddies API | `marketbuddies-api/` | Back End API + Front end Web | Loja, login e cadastro, CRUD de produtos, carrinho, envio do pedido de pagamento, leitura das respostas, e-mail de confirmação, dashboard da gerência |
-| MarketBuddies Worker | `marketbuddies-worker/` | Integração Pagamentos | Consome o pedido da fila, chama o Tranquilo Bank por HTTP e publica a resposta |
-| Tranquilo Bank | `tranquilo-bank/` | API Plataforma de Pagamentos / Banco Tranquilo | API REST que aprova ou recusa o pagamento por uma regra fixa; não usa RabbitMQ nem banco de dados |
-
-_Detalhes de exchanges, filas e mensagens: a preencher._
+![Arquitetura do MarketBuddies](assets/arquitetura.png)
 
 ---
 
 ## Configuração do Projeto — Spring Initializr
 
-Spring Boot 4.1.1, Java 21, Maven, configuração em YAML.
+Spring Boot 4.1.1, Java 21, Maven, configuração em YAML. Cada serviço foi gerado separadamente no Initializr (clique na imagem para ver em tamanho real).
 
-### MarketBuddies API
+<table>
+  <tr>
+    <th>MarketBuddies API</th>
+    <th>MarketBuddies Worker</th>
+    <th>Tranquilo Bank</th>
+  </tr>
+  <tr>
+    <td><a href="assets/spring-initializr-marketbuddies-api.png"><img src="assets/spring-initializr-marketbuddies-api.png" alt="Spring Initializr — MarketBuddies API" width="280"></a></td>
+    <td><a href="assets/spring-initializr-marketbuddies-worker.png"><img src="assets/spring-initializr-marketbuddies-worker.png" alt="Spring Initializr — MarketBuddies Worker" width="280"></a></td>
+    <td><a href="assets/spring-initializr-tranquilo-bank.png"><img src="assets/spring-initializr-tranquilo-bank.png" alt="Spring Initializr — Tranquilo Bank" width="280"></a></td>
+  </tr>
+</table>
 
-![Spring Initializr — MarketBuddies API](assets/spring-initializr-marketbuddies-api.png)
+| Dependência | API | Worker | Bank | Para quê |
+|-------------|:---:|:------:|:----:|----------|
+| Spring Web | ✓ | | ✓ | Controllers e API REST |
+| Spring Security | ✓ | | | Autenticação e autorização por perfil |
+| Thymeleaf | ✓ | | | Telas renderizadas no servidor |
+| Spring Data JPA | ✓ | | | Persistência com Hibernate |
+| PostgreSQL Driver | ✓ | | | Driver JDBC |
+| Validation | ✓ | | ✓ | Bean Validation em formulários e corpos JSON |
+| Spring for RabbitMQ | ✓ | ✓ | | Filas do pagamento |
+| Java Mail Sender | ✓ | | | E-mail de confirmação |
+| HTTP Client | | ✓ | | Chamada ao Tranquilo Bank |
+| Lombok | ✓ | ✓ | ✓ | Menos boilerplate |
+| Spring Boot DevTools | ✓ | ✓ | ✓ | Reinício automático em desenvolvimento |
 
-| Dependência | Categoria | Descrição |
-|-------------|-----------|-----------|
-| Spring Web | WEB | Camada MVC (controllers, dispatcher servlet) |
-| Spring Security | SECURITY | Login customizado, cadastro, perfis e autorização por rota |
-| Thymeleaf | TEMPLATE ENGINES | Telas renderizadas no servidor |
-| Spring Data JPA | SQL | Persistência com JPA e Hibernate |
-| PostgreSQL Driver | SQL | Driver JDBC do PostgreSQL |
-| Validation | I/O | Bean Validation nos formulários |
-| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
-| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
-| Spring for RabbitMQ | MESSAGING | Envio do pedido de pagamento e leitura da resposta |
-| Java Mail Sender | I/O | E-mail de confirmação de pagamento |
-
-> Com Spring Security e Thymeleaf marcados, o Initializr inclui também `thymeleaf-extras-springsecurity6`, usado para mostrar ou esconder elementos por perfil nas telas.
-
-### MarketBuddies Worker
-
-![Spring Initializr — MarketBuddies Worker](assets/spring-initializr-marketbuddies-worker.png)
-
-| Dependência | Categoria | Descrição |
-|-------------|-----------|-----------|
-| Spring for RabbitMQ | MESSAGING | Consome os pedidos e publica as respostas |
-| HTTP Client | WEB | `RestClient` para chamar o Tranquilo Bank, sem subir servidor web |
-| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
-| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
-
-### Tranquilo Bank
-
-![Spring Initializr — Tranquilo Bank](assets/spring-initializr-tranquilo-bank.png)
-
-| Dependência | Categoria | Descrição |
-|-------------|-----------|-----------|
-| Spring Web | WEB | API REST de pagamentos |
-| Validation | I/O | Validação da requisição de pagamento |
-| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
-| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
+Fora do Initializr, a API usa ainda `thymeleaf-extras-springsecurity6` (mostra ou esconde elementos por perfil) e `jjwt` (gera e valida o token JWT).
 
 ---
 
 ## Estrutura do Projeto
 
+Pacotes no plural, por camada, no padrão dos projetos do professor.
+
 ```
 cp5-market-buddies/
-├── marketbuddies-api/      # loja web + back end (Spring MVC + Security + Thymeleaf + JPA)
-├── marketbuddies-worker/   # integração de pagamentos (RabbitMQ + RestClient)
-├── tranquilo-bank/         # API do banco (Spring Web)
-├── docker-compose.yml      # PostgreSQL + RabbitMQ para rodar local
-├── postman/                # coleção com as requisições de compra
-├── assets/                 # imagens deste README
-├── design/                 # design system e logos do MarketBuddies
-└── integrantes.txt
+├── marketbuddies-api/        # loja web, API REST e mensageria (porta 8080)
+│   └── src/main/
+│       ├── java/.../api/
+│       │   ├── configs/      # segurança, RabbitMQ e dados iniciais
+│       │   ├── controllers/  # telas e /api/**
+│       │   ├── services/     # regras de negócio
+│       │   ├── facades/      # fluxo do pagamento
+│       │   ├── producers/    # publica o pedido de pagamento
+│       │   ├── consumers/    # lê as respostas do pagamento
+│       │   ├── entities/     # tabelas
+│       │   └── repositories/
+│       └── resources/
+│           ├── static/       # CSS, JS e imagens
+│           └── templates/    # telas Thymeleaf
+├── marketbuddies-worker/     # integração de pagamentos (sem porta)
+│   └── src/main/java/.../worker/
+│       ├── consumers/        # lê o pedido de pagamento
+│       ├── clients/          # chama o Tranquilo Bank
+│       └── producers/        # publica a resposta
+├── tranquilo-bank/           # API do banco (porta 8090)
+├── postman/                  # coleção e exemplos de JSON
+├── assets/                   # imagens deste README
+└── docker-compose.yml        # PostgreSQL + RabbitMQ local
 ```
-
-_Árvore comentada de cada serviço: a preencher._
 
 ---
 
@@ -143,33 +132,137 @@ cd cp5-market-buddies
 docker compose up -d
 ```
 
-Depois, rodar pela IDE `MarketbuddiesApiApplication`, `MarketbuddiesWorkerApplication` e `TranquiloBankApplication`.
+Depois, rodar pela IDE (ou com `./mvnw spring-boot:run` dentro de cada pasta) as três aplicações **nesta ordem**:
+
+1. `TranquiloBankApplication` — porta 8090
+2. `MarketbuddiesWorkerApplication` — sem porta
+3. `MarketbuddiesApiApplication` — porta 8080
+
+A ordem não é rígida: api e worker declaram as mesmas exchanges e filas no RabbitMQ (a declaração é idempotente), e o worker tenta o banco 3 vezes antes de recusar com "Banco indisponível". Subir o banco primeiro evita a recusa por indisponibilidade na primeira compra.
 
 | Recurso local | Endereço |
 |---------------|----------|
 | MarketBuddies API | http://localhost:8080 |
 | Tranquilo Bank | http://localhost:8090 |
 | MarketBuddies Worker | sem porta (só fila e HTTP de saída) |
-| Painel do RabbitMQ | http://localhost:15672 (guest / guest) |
+| Painel do RabbitMQ | http://localhost:15672 (guest / guest, só local) |
 | PostgreSQL | `localhost:5432`, banco `marketbuddies` |
+
+Para o envio de e-mail local, exporte `MAIL_USERNAME` e `MAIL_PASSWORD` (senha de app do Gmail). Sem eles, o pagamento continua funcionando e o envio é registrado como `ERROR`.
 
 ---
 
-## Segurança — Spring Security
+## Segurança — Spring Security + JWT
 
-_A preencher: rotas × perfis (visitante, CLIENTE, ADMIN), login customizado, cadastro, redirecionamento por perfil, página 403._
+![Fluxo de segurança com JWT](assets/seguranca-jwt.png)
+
+Seguimos o padrão JWT da aula de Spring Security, sem sessão, nas telas e na API. Depois do login, o token vai num cookie protegido nas telas e no header `Authorization: Bearer` na API (Postman). Toda requisição passa pelo mesmo filtro, que valida o token e identifica o usuário.
+
+- **Perfis:** o CUSTOMER compra e vê os próprios pedidos; o ADMIN gerencia os produtos e o dashboard e não compra. O visitante navega pela vitrine e pelo carrinho, e só faz login para finalizar a compra.
+- **Sem permissão:** as telas mostram a página 403 e a API responde 401 ou 403 em JSON.
+- **Autenticação automática:** não declaramos o provider de autenticação, como na aula. Com um único serviço de usuários e um único codificador de senha (BCrypt), o Spring Security monta o provider sozinho.
+- **Cadastro:** cria sempre um CUSTOMER, com e-mail único e senha guardada como hash.
+- **CSRF:** fica ligado nas telas, porque o cookie vai sozinho em toda requisição, e desligado na API, que usa o header.
+
+<!-- print pendente: assets/tela-login.png (ver Demonstração Visual) -->
+
+---
+
+## Tratamento de Erros
+
+| Camada | Tratamento |
+|--------|-----------|
+| Telas | `ViewExceptionHandler` (`@ControllerAdvice`) renderiza `error/404` e `error/403`; erro de validação reabre o formulário (ou o modal) com a mensagem no campo |
+| API (`/api/**`) | `ApiExceptionHandler` (`@RestControllerAdvice`) devolve JSON `{timestamp, status, error, message, path, errors?}` |
+| Tranquilo Bank | mesmo corpo JSON; `400` para corpo inválido, com os erros por campo |
+
+| Situação na API | Status |
+|-----------------|-------:|
+| Corpo inválido (lista vazia, quantidade < 1) | 400 |
+| Sem token ou token inválido | 401 |
+| Perfil sem permissão | 403 |
+| Produto ou pedido inexistente | 404 |
+| Sem estoque (`OutOfStockException`), nenhum item baixa | 409 |
 
 ---
 
 ## Mensageria — RabbitMQ
 
-_A preencher: exchanges, filas, routing keys, formato das mensagens, regra de aprovação do Tranquilo Bank, prints do painel._
+![Fluxo de pagamento](assets/fluxo-pagamento.png)
+
+### Exchanges, routing keys e filas
+
+Três exchanges `direct` duráveis, uma por mensagem, como na demo do professor. A api **e** o worker declaram as três exchanges, as três filas e os três bindings (`RabbitMQConfig`), então qualquer serviço pode subir primeiro.
+
+| Fluxo | Exchange | Routing key | Fila | Publica → consome |
+|-------|----------|-------------|------|-------------------|
+| Pedido de pagamento | `payment-request-exchange` | `payment-request-routing-key` | `payment-request-queue` | api (`PaymentRequestProducer`) → worker (`PaymentRequestConsumer`) |
+| Resposta aprovada | `payment-response-success-exchange` | `payment-response-success-routing-key` | `payment-response-success-queue` | worker (`PaymentSuccessProducer`) → api (`PaymentResponseSuccessConsumer`) |
+| Resposta recusada | `payment-response-error-exchange` | `payment-response-error-routing-key` | `payment-response-error-queue` | worker (`PaymentErrorProducer`) → api (`PaymentResponseErrorConsumer`) |
+
+As mensagens são JSON (`JacksonJsonMessageConverter`, Jackson 3). Mensagem que falha no consumidor é descartada e logada (`default-requeue-rejected: false`), em vez de voltar à fila em loop.
+
+### Mensagens
+
+`PaymentRequestDto` (api → worker), pedido 42 com 1 café e 2 bananas:
+
+```json
+{
+  "orderId": 42,
+  "customerEmail": "cliente@marketbuddies.com",
+  "customerName": "Ana Souza",
+  "totalAmount": 30.47,
+  "items": [
+    { "productId": 7, "productName": "Café torrado e moído 500 g", "quantity": 1, "unitPrice": 18.71 },
+    { "productId": 1, "productName": "Banana prata (kg)", "quantity": 2, "unitPrice": 5.88 }
+  ],
+  "requestedAt": "2026-10-18T20:52:00"
+}
+```
+
+`PaymentResponseDto` (worker → api), aprovado:
+
+```json
+{ "orderId": 42, "approved": true, "authorizationCode": "TB-7F3A9C21", "reason": null, "respondedAt": "2026-10-18T20:52:01" }
+```
+
+Recusado:
+
+```json
+{ "orderId": 43, "approved": false, "authorizationCode": null, "reason": "Valor acima do limite de R$ 500,00", "respondedAt": "2026-10-18T20:53:01" }
+```
+
+### Regra do Tranquilo Bank
+
+O banco **recusa** quando o total é **maior que R$ 500,00** (`tranquilo-bank.approval-limit` no `application.yaml`); caso contrário aprova e devolve um código `TB-` + 8 caracteres hexadecimais. A decisão de negócio volta sempre com `200`, aprovada ou recusada. O banco não guarda transações: cada decisão vai para o log (`Pedido 42 · R$ 33,83 · APROVADO TB-7F3A9C21`), e o registro oficial fica no pedido da api.
+
+### Banco indisponível
+
+O `TranquiloBankClient` tenta **3 vezes**, com 1 segundo de espera entre elas. Se o banco continuar fora do ar, o worker publica uma resposta de erro com o motivo "Banco indisponível". A api marca o pedido como REFUSED e devolve o estoque reservado.
+
+### Estado do pedido e idempotência
+
+O pedido nasce `AWAITING_PAYMENT`, com o estoque já reservado de forma atômica, e só é publicado na fila **depois do commit**. A resposta muda o status por um `update` condicional (`… where status = 'AWAITING_PAYMENT'`): resposta repetida ou concorrente recebe 0 linhas e é ignorada, sem segundo e-mail nem segunda devolução de estoque. Um job marca como REFUSED ("Tempo esgotado") o pedido que fica mais de 5 minutos sem resposta.
+
+<!-- print pendente: assets/worker-log.png (log do worker/banco com "APROVADO TB-…") -->
 
 ---
 
 ## E-mail de Confirmação
 
-_A preencher: envio pelo Gmail, registro de cada e-mail no PostgreSQL, prints._
+Enviado pelo **Gmail** (SMTP `smtp.gmail.com:587`, STARTTLS, senha de app) **somente quando o pagamento é aprovado**. Pedido recusado não gera e-mail.
+
+Como no `EmailService` do professor (`RabbitmqSpringEmail`), cada tentativa é gravada em `TB_EMAILS` (`EmailEntity`: `emailFrom`, `emailTo`, `subject`, `text`, `sendDateEmail`, `statusEmail`):
+
+- envio ok: `SENT`;
+- falha do SMTP (`MailException`): `ERROR` e a mensagem em `error_message`; o erro nunca volta para a fila nem desfaz o pagamento aprovado.
+
+O envio acontece depois que o status do pedido foi gravado, para não segurar conexão do banco durante o SMTP. Se o e-mail falhar, o dashboard mostra o badge de falha e o ADMIN pode usar "Reenviar e-mail".
+
+**Assunto:** `MarketBuddies · Pagamento confirmado do pedido #42`. **Corpo:** nome do cliente, itens com quantidade e preço, total, código de autorização e "Obrigado por comprar no MarketBuddies!".
+
+<!-- print pendente: assets/email-confirmacao.png (e-mail recebido no Gmail) -->
+<!-- print pendente: assets/banco-emails.png (select em TB_EMAILS com SENT/ERROR) -->
 
 ---
 
@@ -181,6 +274,7 @@ Nenhuma senha fica no repositório. Cada `application.yaml` lê as configuraçõ
 
 | Variável | Padrão local | Descrição |
 |----------|--------------|-----------|
+| `PORT` | `8080` | Porta HTTP (o Railway injeta a dele) |
 | `DB_URL` | `jdbc:postgresql://localhost:5432/marketbuddies` | URL JDBC do PostgreSQL |
 | `DB_USER` | `marketbuddies` | Usuário do banco |
 | `DB_PASSWORD` | `marketbuddies` | Senha do banco |
@@ -192,9 +286,11 @@ Nenhuma senha fica no repositório. Cada `application.yaml` lê as configuraçõ
 | `RABBITMQ_PASSWORD` | `guest` | Senha do RabbitMQ |
 | `MAIL_HOST` | `smtp.gmail.com` | Servidor SMTP |
 | `MAIL_PORT` | `587` | Porta SMTP (STARTTLS) |
-| `MAIL_USERNAME` | — | Conta Gmail que envia as confirmações |
+| `MAIL_USERNAME` | — | Conta Gmail que envia as confirmações (também é o remetente) |
 | `MAIL_PASSWORD` | — | Senha de app do Gmail (exige verificação em duas etapas) |
-| `PORT` | `8080` | Porta HTTP (o Railway injeta a dele) |
+| `JWT_SECRET` | chave de desenvolvimento | Chave HS256 do token, 32 caracteres ou mais. No Railway é uma chave aleatória |
+| `ADMIN_EMAIL` | `admin@marketbuddies.com` | E-mail do ADMIN criado pelo seed |
+| `ADMIN_PASSWORD` | `admin123` | Senha do ADMIN. O padrão só vale local; no Railway é obrigatório trocar |
 
 ### MarketBuddies Worker
 
@@ -204,7 +300,7 @@ Nenhuma senha fica no repositório. Cada `application.yaml` lê as configuraçõ
 | `RABBITMQ_PORT` | `5672` | Porta AMQP |
 | `RABBITMQ_USER` | `guest` | Usuário do RabbitMQ |
 | `RABBITMQ_PASSWORD` | `guest` | Senha do RabbitMQ |
-| `TRANQUILO_BANK_URL` | `http://localhost:8090` | Endereço da API do Tranquilo Bank |
+| `TRANQUILO_BANK_URL` | `http://localhost:8090` | Endereço da API do Tranquilo Bank (no Railway, a URL da rede privada) |
 
 ### Tranquilo Bank
 
@@ -212,50 +308,254 @@ Nenhuma senha fica no repositório. Cada `application.yaml` lê as configuraçõ
 |----------|--------------|-----------|
 | `PORT` | `8090` | Porta HTTP |
 
+O limite de aprovação (R$ 500,00) não é variável de ambiente: fica em `tranquilo-bank.approval-limit`, no `application.yaml`.
+
 ---
 
 ## Credenciais de Teste
 
 | Perfil | E-mail | Senha |
 |--------|--------|-------|
-| ADMIN | _a preencher_ | _a preencher_ |
-| CLIENTE | _a preencher_ | _a preencher_ |
+| CUSTOMER | `cliente@marketbuddies.com` | `cliente123` |
+| ADMIN | informado no `.txt` da entrega | informado no `.txt` da entrega |
 
----
-
-## Deploy no Railway
-
-_A preencher: projeto com PostgreSQL, RabbitMQ (com painel de gerenciamento) e os três serviços deste repositório, cada um com a sua pasta como diretório raiz._
+A conta de cliente é criada pelo seed (nome "Ana Souza") e aparece num quadro "Conta de teste" na tela de login. A senha do ADMIN fica só no `.txt` da entrega, porque a conta dá acesso à gestão de produtos e ao dashboard.
 
 ---
 
 ## Modelo de Dados
 
-_A preencher: diagrama, campos por tabela, print do banco._
+![Diagrama ER](assets/diagrama-er.png)
 
----
-
-## Fluxo de Telas
-
-_A preencher._
-
----
-
-## Demonstração Visual
-
-_A preencher: prints na ordem do fluxo no navegador, com destaque para o login e o cadastro._
+<!-- print pendente: assets/banco-tabelas.png (as 5 tabelas no PostgreSQL) -->
 
 ---
 
 ## Testes com Postman
 
-_A preencher: coleção em `postman/`, compra aprovada e compra recusada._
+A coleção está em [`postman/marketbuddies.postman_collection.json`](postman/marketbuddies.postman_collection.json); os JSONs completos estão em [`postman/exemplos.md`](postman/exemplos.md).
+
+### Como importar
+
+1. Postman → **Import** → selecione `postman/marketbuddies.postman_collection.json`.
+2. Confira as variáveis da coleção:
+
+| Variável | Valor padrão | Uso |
+|----------|--------------|-----|
+| `{{api}}` | `https://marketbuddies-api-production.up.railway.app` | URL da API (local: `http://localhost:8080`) |
+| `{{bank}}` | `https://tranquilo-bank-production.up.railway.app` | URL do Tranquilo Bank (local: `http://localhost:8090`) |
+| `{{clientEmail}}` / `{{clientPassword}}` | `cliente@marketbuddies.com` / `cliente123` | Login do cliente de teste |
+| `{{adminEmail}}` / `{{adminPassword}}` | vazias | Preencher com o ADMIN do `.txt` da entrega |
+| `{{token}}` / `{{adminToken}}` / `{{orderId}}` | vazias | Preenchidas pelos scripts de teste |
+
+3. Rode **1. Autenticação → Login (cliente)** primeiro.
+
+### Fluxo do login
+
+A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela grava o `accessToken` da resposta em `{{token}}` (o login do ADMIN grava em `{{adminToken}}`). As demais requests usam `Authorization: Bearer {{token}}`. A request de compra grava o `id` do pedido em `{{orderId}}`, que a consulta do pedido reaproveita. Cada request tem testes de status.
+
+### Requests
+
+**1. Login (cliente)** — `POST {{api}}/api/auth/login`, resposta `200`.
+
+```json
+{ "email": "cliente@marketbuddies.com", "password": "cliente123" }
+```
+
+```json
+{ "accessToken": "eyJhbGciOiJIUzI1NiJ9...", "tokenType": "Bearer", "expiresIn": 3600000 }
+```
+
+<!-- print pendente: assets/postman-login.png -->
+
+**2. Login inválido** — mesma request com senha errada, resposta `401`.
+
+```json
+{ "timestamp": "2026-10-18T20:50:00", "status": 401, "error": "Unauthorized", "message": "Usuário ou senha inválidos", "path": "/api/auth/login" }
+```
+
+<!-- print pendente: assets/postman-login-invalido.png -->
+
+**3. Listar produtos** — `GET {{api}}/api/products`, público, resposta `200` com a lista de produtos (com preço, preço final e desconto; sem custo nem markup).
+
+<!-- print pendente: assets/postman-produtos.png -->
+
+**4. Compra aprovada** — `POST {{api}}/api/orders`, `Bearer`, total de R$ 30,47 (abaixo do limite), resposta `202 Accepted` com `Location: /api/orders/42`. O comprador é o dono do token.
+
+```json
+{ "items": [ { "productId": 7, "quantity": 1 }, { "productId": 1, "quantity": 2 } ] }
+```
+
+```json
+{
+  "id": 42,
+  "status": "AWAITING_PAYMENT",
+  "totalAmount": 30.47,
+  "customerEmail": "cliente@marketbuddies.com",
+  "createdAt": "2026-10-18T20:52:00",
+  "items": [
+    { "productName": "Café torrado e moído 500 g", "quantity": 1, "unitPrice": 18.71 },
+    { "productName": "Banana prata (kg)", "quantity": 2, "unitPrice": 5.88 }
+  ]
+}
+```
+
+<!-- print pendente: assets/postman-compra-aprovada.png -->
+
+**5. Consultar pedido aprovado** — `GET {{api}}/api/orders/{{orderId}}` cerca de 2 s depois, resposta `200`.
+
+```json
+{
+  "id": 42,
+  "status": "APPROVED",
+  "totalAmount": 30.47,
+  "customerEmail": "cliente@marketbuddies.com",
+  "createdAt": "2026-10-18T20:52:00",
+  "respondedAt": "2026-10-18T20:52:01",
+  "authorizationCode": "TB-7F3A9C21",
+  "refusalReason": null,
+  "statusEmail": "SENT",
+  "items": [
+    { "productName": "Café torrado e moído 500 g", "quantity": 1, "unitPrice": 18.71 },
+    { "productName": "Banana prata (kg)", "quantity": 2, "unitPrice": 5.88 }
+  ]
+}
+```
+
+<!-- print pendente: assets/postman-pedido-aprovado.png -->
+
+**6. Compra recusada (acima de R$ 500)** — `POST {{api}}/api/orders`, 17 cafés + 21 maçãs = R$ 524,08. Responde `202` (o pedido nasce aguardando) e, na consulta seguinte, `REFUSED`.
+
+```json
+{ "items": [ { "productId": 7, "quantity": 17 }, { "productId": 2, "quantity": 21 } ] }
+```
+
+```json
+{
+  "id": 43,
+  "status": "REFUSED",
+  "totalAmount": 524.08,
+  "customerEmail": "cliente@marketbuddies.com",
+  "createdAt": "2026-10-18T20:53:00",
+  "respondedAt": "2026-10-18T20:53:01",
+  "authorizationCode": null,
+  "refusalReason": "Valor acima do limite de R$ 500,00",
+  "statusEmail": null
+}
+```
+
+<!-- print pendente: assets/postman-compra-recusada.png -->
+
+**7. Compra sem estoque** — `POST {{api}}/api/orders` com `quantity` 999, resposta `409`; nenhum item baixa.
+
+```json
+{ "timestamp": "2026-10-18T20:54:00", "status": 409, "error": "Conflict", "message": "Sem estoque para Café torrado e moído 500 g (pedido 999, disponível 18)", "path": "/api/orders" }
+```
+
+<!-- print pendente: assets/postman-sem-estoque.png -->
+
+**8. Compra sem token** — `POST {{api}}/api/orders` sem o header `Authorization`, resposta `401`.
+
+```json
+{ "timestamp": "2026-10-18T20:54:30", "status": 401, "error": "Unauthorized", "message": "Autenticação necessária", "path": "/api/orders" }
+```
+
+<!-- print pendente: assets/postman-sem-token.png -->
+
+**9. Corpo inválido** — `POST {{api}}/api/orders` com `{ "items": [] }`, resposta `400`.
+
+```json
+{
+  "timestamp": "2026-10-18T20:55:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Dados inválidos",
+  "path": "/api/orders",
+  "errors": { "items": "O pedido precisa ter ao menos um item" }
+}
+```
+
+**10. E-mails enviados** — `GET {{api}}/api/emails` com o `Bearer` de ADMIN, resposta `200` com os registros de `TB_EMAILS` (`SENT`/`ERROR`), do mais recente ao mais antigo.
+
+<!-- print pendente: assets/postman-emails.png -->
+
+**11. Tranquilo Bank — aprovado** — `POST {{bank}}/api/payments/authorize`, resposta `200`.
+
+```json
+{ "orderId": 42, "amount": 33.83, "customerEmail": "cliente@marketbuddies.com" }
+```
+
+```json
+{ "orderId": 42, "approved": true, "authorizationCode": "TB-7F3A9C21", "reason": null, "processedAt": "2026-10-18T20:52:01" }
+```
+
+<!-- print pendente: assets/postman-banco-aprovado.png -->
+
+**12. Tranquilo Bank — recusado** — mesma request com `"amount": 523.88`, resposta `200`.
+
+```json
+{ "orderId": 43, "approved": false, "authorizationCode": null, "reason": "Valor acima do limite de R$ 500,00", "processedAt": "2026-10-18T20:53:01" }
+```
+
+<!-- print pendente: assets/postman-banco-recusado.png -->
+
+**13. Tranquilo Bank — inválido** — mesma request sem `amount`, resposta `400`.
+
+```json
+{
+  "timestamp": "2026-10-18T20:56:00",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Dados inválidos",
+  "path": "/api/payments/authorize",
+  "errors": { "amount": "O valor é obrigatório" }
+}
+```
+
+<!-- print pendente: assets/postman-banco-invalido.png -->
+
+**Collection Runner** — todos os testes da coleção passando.
+
+<!-- print pendente: assets/postman-runner.png -->
+
+> Os JSONs acima são os de `postman/exemplos.md`, escritos a partir dos contratos da spec. Serão trocados pelas respostas reais quando os prints forem tirados.
+
+---
+
+## Painel do RabbitMQ e Testes Internos
+
+Painel no Railway: https://rabbitmq-production-e3dc.up.railway.app (usuário e senha no `.txt` da entrega). Local: http://localhost:15672.
+
+- **Exchanges** — as três `direct`.
+  <!-- print pendente: assets/rabbitmq-exchanges.png -->
+- **Filas** — as três filas com mensagens trafegadas depois de uma compra.
+  <!-- print pendente: assets/rabbitmq-filas.png -->
+- **Mensagem** — "Get messages" mostrando o JSON de um pedido.
+  <!-- print pendente: assets/rabbitmq-mensagem.png -->
+
+### Testes internos (RabbitMQ Monitor)
+
+O enunciado pede "testes internos do RabbitMQ Monitor". Roteiro:
+
+1. **Publicar pelo painel:** em `payment-request-exchange`, "Publish message" com um `PaymentRequestDto` e routing key `payment-request-routing-key`. Esperado: uma mensagem chega em `payment-response-success-queue` (valor até R$ 500,00) ou em `payment-response-error-queue` (valor acima).
+   <!-- print pendente: assets/rabbitmq-publicar.png (I4) -->
+2. **Banco parado:** com o `tranquilo-bank` desligado, publicar de novo. Esperado: depois de 3 tentativas, uma mensagem em `payment-response-error-queue` com "Banco indisponível".
+3. **Resposta repetida:** reenviar na fila de sucesso a resposta de um pedido já aprovado. Esperado: nada muda na tela e nenhuma linha nova no banco (log "resposta ignorada").
+4. **Compra de ponta a ponta:** comprar pela tela e acompanhar os contadores das três filas.
 
 ---
 
 ## Dashboard da Gerência
 
-_A preencher._
+Tela `/admin/dashboard` (ADMIN), com Chart.js. Os dados vêm do banco; o lucro usa o custo gravado no item (foto do momento).
+
+**KPIs:** vendas de hoje; pedidos pagos hoje (com recusados e aguardando); ticket médio; lucro de hoje e % das vendas; markup médio do catálogo; produtos com estoque ≤ 5.
+
+**Gráficos:** vendas × lucro dos últimos 7 dias; vendas da semana por categoria; estoque por produto (vermelho quando ≤ 5).
+
+**Últimas 10 compras:** tabela com badge de pagamento e de e-mail e o botão "Reenviar e-mail" para pedido aprovado sem e-mail ou com `ERROR`.
+
+<!-- print pendente: assets/tela-dashboard.png -->
 
 ---
 
@@ -264,11 +564,13 @@ _A preencher._
 - **Java 21**
 - **Spring Boot 4.1.1**
 - **Spring Web (MVC) + Thymeleaf**
-- **Spring Security**
+- **Spring Security + JWT (jjwt)**
 - **Spring Data JPA + Hibernate**
 - **PostgreSQL**
-- **Spring for RabbitMQ**
-- **Java Mail Sender**
+- **Spring for RabbitMQ** (RabbitMQ 4)
+- **Java Mail Sender** (Gmail SMTP)
+- **Chart.js** (dashboard)
 - **Lombok**
+- **Postman**
 - **Docker** e **Railway**
 - **Maven**
