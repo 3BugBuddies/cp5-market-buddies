@@ -4,6 +4,7 @@ import br.com.fiap.marketbuddies.api.dtos.OrderDto;
 import br.com.fiap.marketbuddies.api.dtos.OrderItemRequestDto;
 import br.com.fiap.marketbuddies.api.dtos.PaymentRequestDto;
 import br.com.fiap.marketbuddies.api.dtos.RetryItemDto;
+import br.com.fiap.marketbuddies.api.entities.EmailEntity;
 import br.com.fiap.marketbuddies.api.entities.OrderEntity;
 import br.com.fiap.marketbuddies.api.entities.OrderItemEntity;
 import br.com.fiap.marketbuddies.api.entities.ProductEntity;
@@ -11,6 +12,7 @@ import br.com.fiap.marketbuddies.api.entities.UserEntity;
 import br.com.fiap.marketbuddies.api.enums.OrderOrigin;
 import br.com.fiap.marketbuddies.api.enums.OrderStatus;
 import br.com.fiap.marketbuddies.api.enums.Role;
+import br.com.fiap.marketbuddies.api.enums.StatusEmail;
 import br.com.fiap.marketbuddies.api.events.OrderCreatedEvent;
 import br.com.fiap.marketbuddies.api.exceptions.BusinessException;
 import br.com.fiap.marketbuddies.api.exceptions.NotFoundException;
@@ -57,7 +59,7 @@ public class OrderService {
         // Soma itens repetidos e ordena por id: as reservas travam as linhas sempre na mesma ordem,
         // então dois pedidos simultâneos não entram em deadlock
         Map<Long, Integer> quantities = new TreeMap<>();
-        requestedItems.forEach(i -> quantities.merge(i.getProductId(), i.getQuantity(), Integer::sum));
+        requestedItems.forEach(i -> quantities.merge(i.productId(), i.quantity(), Integer::sum));
 
         Map<Long, ProductEntity> products = new TreeMap<>();
         productRepository.findAllById(quantities.keySet()).forEach(p -> products.put(p.getId(), p));
@@ -157,10 +159,10 @@ public class OrderService {
         OrderEntity order = orderRepository.findDetailedById(orderId)
                 .filter(o -> admin || o.getCustomer().getId().equals(userId))
                 .orElseThrow(() -> new NotFoundException("Pedido " + orderId + " não encontrado"));
-        OrderDto dto = OrderDto.from(order);
-        emailRepository.findFirstByOrder_IdOrderByIdDesc(orderId)
-                .ifPresent(email -> dto.setStatusEmail(email.getStatusEmail()));
-        return dto;
+        StatusEmail statusEmail = emailRepository.findFirstByOrder_IdOrderByIdDesc(orderId)
+                .map(EmailEntity::getStatusEmail)
+                .orElse(null);
+        return OrderDto.from(order, statusEmail);
     }
 
     // Itens de um pedido RECUSADO do próprio cliente, para "Tentar de novo" remontar o carrinho (D20).

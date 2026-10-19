@@ -40,7 +40,7 @@ public class OrderViewController {
     @GetMapping("/status")
     @ResponseBody
     public Map<String, Object> status(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
-        return Map.of("status", orderService.getOrder(id, user.getId(), false).getStatus());
+        return Map.of("status", orderService.getOrder(id, user.getId(), false).status());
     }
 
     // "Tentar de novo": remonta o carrinho com os itens do pedido recusado e leva ao checkout.

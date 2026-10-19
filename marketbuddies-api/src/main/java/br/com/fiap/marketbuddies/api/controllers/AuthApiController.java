@@ -30,7 +30,7 @@ public class AuthApiController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody LoginDto request) {
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail().trim(), request.getPassword()));
+                new UsernamePasswordAuthenticationToken(request.email().trim(), request.password()));
 
         String token = jwtUtil.generateToken((UserDetails) authentication.getPrincipal());
 

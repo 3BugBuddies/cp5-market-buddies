@@ -95,8 +95,8 @@ public class CartService {
 
     // Itens do carrinho no formato do pedido, para o checkout.
     public List<OrderItemRequestDto> toOrderItems(CartDto view) {
-        return view.getItems().stream()
-                .map(i -> new OrderItemRequestDto(i.getProductId(), i.getQuantity()))
+        return view.items().stream()
+                .map(i -> new OrderItemRequestDto(i.productId(), i.quantity()))
                 .toList();
     }
 

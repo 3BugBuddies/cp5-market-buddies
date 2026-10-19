@@ -33,7 +33,7 @@ public class CheckoutViewController {
         CartDto cart = cartService.view();
         if (cart.isEmpty()) {
             // Avisos de produto que saiu do catálogo: a visão já tirou o item da sessão, então vão no flash
-            redirect.addFlashAttribute("notices", cart.getNotices());
+            redirect.addFlashAttribute("notices", cart.notices());
             return "redirect:/cart";
         }
         model.addAttribute("cart", cart);
@@ -49,14 +49,14 @@ public class CheckoutViewController {
         CartDto cart = cartService.view();
         // Carrinho vazio também barra o segundo POST de um duplo clique (o primeiro já esvaziou)
         if (cart.isEmpty()) {
-            redirect.addFlashAttribute("notices", cart.getNotices());
+            redirect.addFlashAttribute("notices", cart.notices());
             return "redirect:/cart";
         }
-        if (!cart.getNotices().isEmpty()) {
-            redirect.addFlashAttribute("notices", cart.getNotices());
+        if (!cart.notices().isEmpty()) {
+            redirect.addFlashAttribute("notices", cart.notices());
             return "redirect:/checkout";
         }
-        if (expectedTotal == null || expectedTotal.compareTo(cart.getTotal()) != 0) {
+        if (expectedTotal == null || expectedTotal.compareTo(cart.total()) != 0) {
             redirect.addFlashAttribute("error", "Os preços mudaram, confira o total antes de pagar.");
             return "redirect:/checkout";
         }
@@ -72,6 +72,6 @@ public class CheckoutViewController {
         }
 
         cartService.clear();
-        return "redirect:/orders/" + order.getId();
+        return "redirect:/orders/" + order.id();
     }
 }

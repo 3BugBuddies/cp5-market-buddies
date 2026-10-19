@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -31,15 +32,14 @@ public class AdminProductViewController {
 
     @GetMapping
     public String list(Model model) {
-        return page(model, new ProductFormDto(), false);
+        return page(model, ProductFormDto.empty(), false);
     }
 
     @PostMapping
     public String create(@Valid @ModelAttribute("productForm") ProductFormDto form, BindingResult result,
                          Model model, RedirectAttributes redirect) {
-        form.setId(null);
         if (result.hasErrors()) {
-            return page(model, form, true);
+            return page(model, form.withId(null), result);
         }
         productService.create(form);
         redirect.addFlashAttribute("success", "Produto salvo");
@@ -50,9 +50,8 @@ public class AdminProductViewController {
     public String update(@PathVariable Long id, @Valid @ModelAttribute("productForm") ProductFormDto form,
                          BindingResult result, Model model, RedirectAttributes redirect) {
         // O id da rota é o que vale; o do corpo é ignorado
-        form.setId(id);
         if (result.hasErrors()) {
-            return page(model, form, true);
+            return page(model, form.withId(id), result);
         }
         try {
             productService.update(id, form);
@@ -70,6 +69,16 @@ public class AdminProductViewController {
         String name = productService.delete(id);
         redirect.addFlashAttribute("success", "Produto excluído: " + name);
         return "redirect:/admin/products";
+    }
+
+    // Erro de validação: o form corrigido (id da rota) é outro objeto, então o BindingResult é copiado para
+    // ele; sem isso o model descartaria os erros ao trocar o atributo productForm.
+    private String page(Model model, ProductFormDto form, BindingResult result) {
+        String page = page(model, form, true);
+        BindingResult copy = new BeanPropertyBindingResult(form, "productForm");
+        copy.addAllErrors(result);
+        model.addAttribute(BindingResult.MODEL_KEY_PREFIX + "productForm", copy);
+        return page;
     }
 
     private String page(Model model, ProductFormDto form, boolean modalOpen) {

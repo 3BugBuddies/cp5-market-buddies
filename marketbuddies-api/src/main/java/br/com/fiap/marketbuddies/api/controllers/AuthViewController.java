@@ -87,7 +87,7 @@ public class AuthViewController {
 
     @GetMapping("/signup")
     public String signUpForm(Model model) {
-        model.addAttribute("signUpDto", new SignUpDto());
+        model.addAttribute("signUpDto", SignUpDto.empty());
         return "auth/signup";
     }
 

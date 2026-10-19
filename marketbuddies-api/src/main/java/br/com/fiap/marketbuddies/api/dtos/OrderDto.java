@@ -5,8 +5,7 @@ import br.com.fiap.marketbuddies.api.entities.OrderItemEntity;
 import br.com.fiap.marketbuddies.api.enums.OrderOrigin;
 import br.com.fiap.marketbuddies.api.enums.OrderStatus;
 import br.com.fiap.marketbuddies.api.enums.StatusEmail;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,52 +13,51 @@ import java.util.List;
 
 // Resposta única do pedido (POST /api/orders, GET /api/orders/{id} e a tela do pedido).
 // Campos da resposta do banco ficam nulos enquanto o pedido aguarda pagamento.
-@Data
-@NoArgsConstructor
-public class OrderDto {
-
-    private Long id;
-    private OrderStatus status;
-    private BigDecimal totalAmount;
-    private String customerEmail;
-    private OrderOrigin origin;
-    private LocalDateTime createdAt;
-    private LocalDateTime respondedAt;
-    private String authorizationCode;
-    private String refusalReason;
-    // Status do último e-mail do pedido (OrderService.getOrder); nulo enquanto não houver e-mail.
-    private StatusEmail statusEmail;
-    private List<Item> items;
+// statusEmail: status do último e-mail do pedido (OrderService.getOrder); nulo enquanto não houver e-mail.
+// Ordem alfabética explícita: a mesma do JSON da classe com @Data. Sem a lista, o Jackson 3 põe os
+// componentes do record primeiro, na ordem do construtor (alphabetic = true não basta).
+@JsonPropertyOrder({"authorizationCode", "createdAt", "customerEmail", "id", "items", "origin", "refusalReason",
+        "respondedAt", "status", "statusEmail", "totalAmount"})
+public record OrderDto(
+        Long id,
+        OrderStatus status,
+        BigDecimal totalAmount,
+        String customerEmail,
+        OrderOrigin origin,
+        LocalDateTime createdAt,
+        LocalDateTime respondedAt,
+        String authorizationCode,
+        String refusalReason,
+        StatusEmail statusEmail,
+        List<Item> items) {
 
     // Chamar dentro da transação: lê o cliente e os itens do pedido.
     public static OrderDto from(OrderEntity order) {
-        OrderDto dto = new OrderDto();
-        dto.setId(order.getId());
-        dto.setStatus(order.getStatus());
-        dto.setTotalAmount(order.getTotalAmount());
-        dto.setCustomerEmail(order.getCustomer().getEmail());
-        dto.setOrigin(order.getOrigin());
-        dto.setCreatedAt(order.getCreatedAt());
-        dto.setRespondedAt(order.getRespondedAt());
-        dto.setAuthorizationCode(order.getAuthorizationCode());
-        dto.setRefusalReason(order.getRefusalReason());
-        dto.setItems(order.getItems().stream().map(Item::from).toList());
-        return dto;
+        return from(order, null);
     }
 
-    @Data
-    @NoArgsConstructor
-    public static class Item {
-        private String productName;
-        private Integer quantity;
-        private BigDecimal unitPrice;
+    public static OrderDto from(OrderEntity order, StatusEmail statusEmail) {
+        return new OrderDto(
+                order.getId(),
+                order.getStatus(),
+                order.getTotalAmount(),
+                order.getCustomer().getEmail(),
+                order.getOrigin(),
+                order.getCreatedAt(),
+                order.getRespondedAt(),
+                order.getAuthorizationCode(),
+                order.getRefusalReason(),
+                statusEmail,
+                order.getItems().stream().map(Item::from).toList());
+    }
+
+    public record Item(
+            String productName,
+            Integer quantity,
+            BigDecimal unitPrice) {
 
         static Item from(OrderItemEntity entity) {
-            Item item = new Item();
-            item.setProductName(entity.getProductName());
-            item.setQuantity(entity.getQuantity());
-            item.setUnitPrice(entity.getUnitPrice());
-            return item;
+            return new Item(entity.getProductName(), entity.getQuantity(), entity.getUnitPrice());
         }
     }
 }
