@@ -173,7 +173,7 @@ Seguimos o padrão JWT da aula de Spring Security, sem sessão, nas telas e na A
 - **Cadastro:** cria sempre um CUSTOMER, com e-mail único e senha guardada como hash.
 - **CSRF:** fica ligado nas telas, porque o cookie vai sozinho em toda requisição, e desligado na API, que usa o header.
 
-<!-- print pendente: assets/tela-login.png -->
+![Tela de login com as contas de teste](assets/tela-login.png)
 
 ---
 
