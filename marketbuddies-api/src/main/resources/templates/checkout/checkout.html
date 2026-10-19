@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Revisar e pagar')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('nenhum')}"></header>
+<main class="mb-page" style="flex: 1">
+    <div class="mb-container" style="display: flex; flex-direction: column; gap: 16px">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <div th:each="n : ${notices}" class="mb-alert mb-alert--warning" role="status">
+            <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+            <span th:text="${n}">Produto saiu do catálogo.</span>
+        </div>
+        <div th:each="n : ${cart.notices}" class="mb-alert mb-alert--warning" role="status">
+            <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+            <span th:text="${n}">Produto saiu do catálogo.</span>
+        </div>
+        <div th:if="${cart.overStock}" class="mb-alert mb-alert--warning" role="status">
+            <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+            <span>Algum item tem menos estoque do que a quantidade no carrinho. Ajuste o carrinho antes de pagar.</span>
+        </div>
+
+        <div class="mb-page-header" style="margin: 0"><h1>Revisar e pagar</h1><a th:href="@{/cart}">Alterar carrinho</a></div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+            <section class="mb-card" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+                <h2 class="mb-card__title">Itens</h2>
+                <div th:each="it : ${cart.items}"
+                     style="display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--mb-line)">
+                    <div style="display: flex; flex-direction: column; min-width: 0">
+                        <span style="font-weight: 500" th:text="${it.name}">Café torrado e moído 500 g</span>
+                        <span style="font-size: var(--mb-fs-xs); color: var(--mb-ink-600)"
+                              th:text="${it.quantity + ' × R$ ' + #numbers.formatDecimal(it.unitPrice, 1, 'POINT', 2, 'COMMA')}">1 × R$ 18,71</span>
+                    </div>
+                    <span style="font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap"
+                          th:text="${'R$ ' + #numbers.formatDecimal(it.subtotal, 1, 'POINT', 2, 'COMMA')}">R$ 18,71</span>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 12px">
+                    <span class="mb-label">Confirmação por e-mail</span>
+                    <span style="color: var(--mb-ink-600)">Enviamos o aviso de pagamento para
+                        <strong style="color: var(--mb-ink-900)" th:text="${customerEmail}">ana.souza@exemplo.com</strong>.</span>
+                </div>
+            </section>
+
+            <aside class="mb-card" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+                <h2 class="mb-card__title" style="margin: 0">Pagamento</h2>
+                <div style="display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--mb-blue-600); border-radius: var(--mb-radius-sm); background: var(--mb-blue-50)">
+                    <svg class="mb-icon" viewBox="0 0 24 24" style="width: 28px; height: 28px; color: var(--mb-blue-700)" aria-hidden="true"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"></path></svg>
+                    <div style="display: flex; flex-direction: column">
+                        <span style="font-weight: 700">Tranquilo Bank</span>
+                        <span style="font-size: var(--mb-fs-xs); color: var(--mb-ink-600)">O banco confirma em alguns segundos.</span>
+                    </div>
+                </div>
+                <div class="mb-row mb-row--total">
+                    <span>Total</span>
+                    <span th:text="${'R$ ' + #numbers.formatDecimal(cart.total, 1, 'POINT', 2, 'COMMA')}">R$ 34,83</span>
+                </div>
+                <!-- O total visto vai junto (P4): se o preço mudar até o clique, o pedido não é criado.
+                     O botão desabilita no envio para um duplo clique não mandar dois POST -->
+                <form th:action="@{/checkout}" method="post" style="display: contents"
+                      onsubmit="this.querySelector('button[type=submit]').disabled = true">
+                    <input type="hidden" name="expectedTotal" th:value="${cart.total}">
+                    <button class="mb-btn mb-btn--buy mb-btn--block" type="submit"
+                            th:text="${'Pagar R$ ' + #numbers.formatDecimal(cart.total, 1, 'POINT', 2, 'COMMA')}">Pagar R$ 34,83</button>
+                </form>
+                <p style="margin: 0; font-size: var(--mb-fs-xs); color: var(--mb-ink-600)">Ao pagar, os itens ficam reservados para você enquanto o banco responde.</p>
+            </aside>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>
