@@ -66,6 +66,16 @@ public class CartService {
     // Quantidade acima do estoque NÃO é cortada aqui: o item aparece marcado e a reserva no pagamento decide.
     @Transactional(readOnly = true)
     public CartDto view() {
+        return build(true);
+    }
+
+    /** Como view(), mas sem retirar da sessão os produtos excluídos do catálogo. */
+    @Transactional(readOnly = true)
+    public CartDto preview() {
+        return build(false);
+    }
+
+    private CartDto build(boolean dropGone) {
         Map<Long, ProductEntity> products = productRepository.findAllById(cart.entries().keySet()).stream()
                 .collect(Collectors.toMap(ProductEntity::getId, Function.identity()));
 
@@ -90,7 +100,9 @@ public class CartService {
             total = total.add(subtotal);
             totalQuantity += quantity;
         }
-        gone.forEach(cart::remove);
+        if (dropGone) {
+            gone.forEach(cart::remove);
+        }
 
         return new CartDto(items, totalQuantity, total, notices);
     }
