@@ -71,7 +71,6 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(paymentErrorQueue()).to(paymentErrorExchange()).with(ERROR_ROUTING_KEY);
     }
 
-    // Spring AMQP 4.x usa Jackson 3; o Jackson2JsonMessageConverter (Jackson 2) está descontinuado.
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new JacksonJsonMessageConverter();
