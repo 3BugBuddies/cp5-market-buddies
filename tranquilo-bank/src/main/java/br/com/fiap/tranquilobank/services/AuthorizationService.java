@@ -26,18 +26,18 @@ public class AuthorizationService {
 	}
 
 	public AuthorizationResponseDto authorize(AuthorizationRequestDto request) {
-		String amountText = format(request.getAmount());
+		String amountText = format(request.amount());
 		LocalDateTime now = LocalDateTime.now();
 
-		if (request.getAmount().compareTo(approvalLimit) > 0) {
+		if (request.amount().compareTo(approvalLimit) > 0) {
 			String reason = "Valor acima do limite de R$ " + format(approvalLimit);
-			log.info("Pedido {} · R$ {} · RECUSADO ({})", request.getOrderId(), amountText, reason);
-			return new AuthorizationResponseDto(request.getOrderId(), false, null, reason, now);
+			log.info("Pedido {} · R$ {} · RECUSADO ({})", request.orderId(), amountText, reason);
+			return new AuthorizationResponseDto(request.orderId(), false, null, reason, now);
 		}
 
 		String code = "TB-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
-		log.info("Pedido {} · R$ {} · APROVADO {}", request.getOrderId(), amountText, code);
-		return new AuthorizationResponseDto(request.getOrderId(), true, code, null, now);
+		log.info("Pedido {} · R$ {} · APROVADO {}", request.orderId(), amountText, code);
+		return new AuthorizationResponseDto(request.orderId(), true, code, null, now);
 	}
 
 	private String format(BigDecimal value) {

@@ -25,24 +25,24 @@ public class PaymentRequestConsumer {
 
     @RabbitListener(queues = "payment-request-queue")
     public void receive(PaymentRequestDto request) {
-        log.info("Pedido {} recebido · R$ {}", request.getOrderId(), request.getTotalAmount());
+        log.info("Pedido {} recebido · R$ {}", request.orderId(), request.totalAmount());
 
         AuthorizationResponseDto authorization = bankClient.authorize(
-                new AuthorizationRequestDto(request.getOrderId(), request.getTotalAmount(), request.getCustomerEmail()));
+                new AuthorizationRequestDto(request.orderId(), request.totalAmount(), request.customerEmail()));
 
         PaymentResponseDto response = new PaymentResponseDto(
-                request.getOrderId(),
-                authorization.getApproved(),
-                authorization.getAuthorizationCode(),
-                authorization.getReason(),
+                request.orderId(),
+                authorization.approved(),
+                authorization.authorizationCode(),
+                authorization.reason(),
                 LocalDateTime.now());
 
-        if (Boolean.TRUE.equals(authorization.getApproved())) {
+        if (Boolean.TRUE.equals(authorization.approved())) {
             successProducer.send(response);
-            log.info("Pedido {} APROVADO {}", response.getOrderId(), response.getAuthorizationCode());
+            log.info("Pedido {} APROVADO {}", response.orderId(), response.authorizationCode());
         } else {
             errorProducer.send(response);
-            log.info("Pedido {} RECUSADO · {}", response.getOrderId(), response.getReason());
+            log.info("Pedido {} RECUSADO · {}", response.orderId(), response.reason());
         }
     }
 }

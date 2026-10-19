@@ -30,7 +30,7 @@ public class TranquiloBankClient {
     public AuthorizationResponseDto authorize(AuthorizationRequestDto request) {
         for (int attempt = 1; attempt <= attempts; attempt++) {
             try {
-                log.info("Pedido {} · tentativa {}/{} no tranquilo-bank", request.getOrderId(), attempt, attempts);
+                log.info("Pedido {} · tentativa {}/{} no tranquilo-bank", request.orderId(), attempt, attempts);
                 AuthorizationResponseDto response = restClient.post()
                         .uri("/api/payments/authorize")
                         .body(request)
@@ -39,16 +39,16 @@ public class TranquiloBankClient {
                 if (response != null) {
                     return response;
                 }
-                log.warn("Pedido {} · tentativa {}/{} sem corpo na resposta", request.getOrderId(), attempt, attempts);
+                log.warn("Pedido {} · tentativa {}/{} sem corpo na resposta", request.orderId(), attempt, attempts);
             } catch (Exception e) {
-                log.warn("Pedido {} · tentativa {}/{} falhou: {}", request.getOrderId(), attempt, attempts, e.getMessage());
+                log.warn("Pedido {} · tentativa {}/{} falhou: {}", request.orderId(), attempt, attempts, e.getMessage());
             }
             if (attempt < attempts) {
                 pause();
             }
         }
-        log.error("Pedido {} · tranquilo-bank indisponível após {} tentativas", request.getOrderId(), attempts);
-        return new AuthorizationResponseDto(request.getOrderId(), false, null, BANK_UNAVAILABLE, LocalDateTime.now());
+        log.error("Pedido {} · tranquilo-bank indisponível após {} tentativas", request.orderId(), attempts);
+        return new AuthorizationResponseDto(request.orderId(), false, null, BANK_UNAVAILABLE, LocalDateTime.now());
     }
 
     private void pause() {
