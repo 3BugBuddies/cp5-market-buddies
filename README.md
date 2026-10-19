@@ -178,7 +178,14 @@ A ordem não é rígida: api e worker declaram as mesmas exchanges e filas no Ra
 | Painel do RabbitMQ | http://localhost:15672 (guest / guest, só local) |
 | PostgreSQL | `localhost:5432`, banco `marketbuddies` |
 
-Para o envio de e-mail local, exporte `MAIL_USERNAME` e `MAIL_PASSWORD` (senha de app do Gmail). Sem eles, o pagamento continua funcionando e o envio é registrado como `ERROR`.
+Sem configurar nada, os três serviços sobem com os padrões locais do `docker-compose.yml`. Para mudar algum valor (por exemplo, o Gmail que envia as confirmações), copie o `.env.example` da raiz para `.env` e preencha. O Spring Boot não lê o `.env` sozinho: carregue-o na Run Configuration da IntelliJ (plugin EnvFile ou "Environment variables") ou no terminal:
+
+```bash
+cp .env.example .env
+set -a; source .env; set +a
+```
+
+Sem `MAIL_USERNAME` e `MAIL_PASSWORD` (senha de app do Gmail), o pagamento continua funcionando e o envio é registrado como `ERROR`.
 
 ---
 
@@ -306,7 +313,7 @@ O envio acontece depois que o status do pedido foi gravado, para não segurar co
 
 ## Variáveis de Ambiente
 
-Nenhuma senha fica no repositório. Cada `application.yaml` lê as configurações no formato `${VARIAVEL:padrão}`: o padrão é o ambiente local do `docker-compose.yml`, e no Railway as variáveis são cadastradas em cada serviço.
+Nenhuma senha fica no repositório; o modelo com todas as variáveis está em `.env.example`. Cada `application.yaml` lê as configurações no formato `${VARIAVEL:padrão}`: o padrão é o ambiente local do `docker-compose.yml`, e no Railway as variáveis são cadastradas em cada serviço.
 
 ### MarketBuddies API
 
