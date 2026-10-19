@@ -560,7 +560,8 @@ Painel no Railway: https://rabbitmq-production-e3dc.up.railway.app (usuário e s
 
   ![Filas no painel do RabbitMQ](assets/rabbitmq-filas.png)
 - **Mensagem** — "Get messages" mostrando o JSON de um pedido.
-  <!-- print pendente: assets/rabbitmq-mensagem.png -->
+  
+  ![Get messages com o JSON do pedido na payment-request-queue](assets/rabbitmq-mensagem.png)
 
 ### Testes internos (RabbitMQ Monitor)
 
