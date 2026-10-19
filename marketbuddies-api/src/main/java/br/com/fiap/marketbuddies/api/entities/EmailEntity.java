@@ -8,7 +8,6 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
-// Espelha o EmailModel do professor (RabbitmqSpringEmail), com o pedido e a mensagem de erro.
 @Data
 @Entity
 @Table(name = "TB_EMAILS")

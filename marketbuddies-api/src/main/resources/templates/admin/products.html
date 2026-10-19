@@ -16,16 +16,23 @@
             <table class="mb-table">
                 <thead>
                 <tr>
-                    <th>ID</th><th>Nome</th><th>Categoria</th><th class="mb-num">Custo</th><th class="mb-num">Markup</th>
+                    <th>ID</th><th><span class="mb-sr-only">Foto</span></th><th>Nome</th><th>Categoria</th><th class="mb-num">Custo</th><th class="mb-num">Markup</th>
                     <th class="mb-num">Preço</th><th>Oferta</th><th class="mb-num">Estoque</th><th class="mb-num">Ações</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:if="${products.isEmpty()}">
-                    <td colspan="9" class="mb-muted" style="text-align: center">Nenhum produto cadastrado.</td>
+                    <td colspan="10" class="mb-muted" style="text-align: center">Nenhum produto cadastrado.</td>
                 </tr>
                 <tr th:each="p : ${products}">
                     <td th:text="${p.id}">1</td>
+                    <td>
+                        <img th:if="${p.imagePath != null}" class="mb-thumb" th:src="@{${p.imagePath}}" th:alt="${p.name}"
+                             loading="lazy" width="40" height="40">
+                        <span th:unless="${p.imagePath != null}" class="mb-thumb mb-thumb--empty" aria-hidden="true">
+                            <svg class="mb-icon" viewBox="0 0 24 24"><path d="M7 10l5-6 5 6"></path><path d="M21 10l-2 8a2 2 0 0 1-2 1.5H7A2 2 0 0 1 5 18l-2-8z"></path><circle cx="12" cy="15" r="2"></circle></svg>
+                        </span>
+                    </td>
                     <td style="font-weight: 500" th:text="${p.name}">Banana prata (kg)</td>
                     <td th:text="${p.category.label}">Hortifruti</td>
                     <td class="mb-num" th:text="'R$ ' + ${#numbers.formatDecimal(p.cost, 1, 'POINT', 2, 'COMMA')}">R$ 4,20</td>
@@ -44,7 +51,6 @@
                                th:aria-label="'Ver ' + ${p.name}" title="Ver">
                                 <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"></circle><path d="M22 12c-2.7 4.7-6 7-10 7s-7.3-2.3-10-7c2.7-4.7 6-7 10-7s7.3 2.3 10 7"></path></svg>
                             </a>
-                            <!-- data-*: o JS preenche o modal de edição com estes valores -->
                             <button class="mb-btn mb-btn--secondary mb-btn--sm" type="button" title="Editar"
                                     th:aria-label="'Editar ' + ${p.name}" data-product-edit
                                     th:data-id="${p.id}" th:data-version="${p.version}" th:data-name="${p.name}"
@@ -69,7 +75,6 @@
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 
-<!-- Modal de criação/edição. Erro de validação ou conflito de versão re-renderiza a tela com data-aberto="true" -->
 <dialog id="product-modal" class="mb-modal" aria-labelledby="pm-title"
         th:attr="data-aberto=${modalOpen} ? 'true' : 'false'">
     <form class="mb-modal__panel" method="post" novalidate data-product-form th:object="${productForm}"
@@ -136,7 +141,6 @@
                 </div>
                 <div class="mb-field" style="gap: 8px">
                     <span class="mb-label">Oferta</span>
-                    <!-- O checkbox não vai para o servidor: só mostra o desconto ou o zera (0 = sem oferta) -->
                     <label class="mb-check" for="pm-oferta">
                         <input type="checkbox" id="pm-oferta" data-offer-toggle
                                th:checked="${productForm.discountPercentage != null and productForm.discountPercentage.signum() != 0}"> Em oferta
@@ -169,7 +173,6 @@
     </form>
 </dialog>
 
-<!-- Confirmação de exclusão: o JS troca o action para /admin/products/{id}/delete -->
 <dialog id="delete-modal" class="mb-modal mb-modal--sm" role="alertdialog" aria-labelledby="pe-title">
     <form class="mb-modal__panel" method="post" data-delete-form th:data-base-action="@{/admin/products}"
           th:action="@{/admin/products/0/delete}">

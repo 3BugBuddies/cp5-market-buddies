@@ -3,8 +3,6 @@
 <head th:replace="~{fragments/layout :: head(${'Pedido #' + order.id})}"></head>
 <body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
 <header th:replace="~{fragments/layout :: navbar('nenhum')}"></header>
-<!-- Três estados numa view só (aguardando · aprovado · recusado), como as telas PedidoAguardando,
-     PedidoAprovado e PedidoRecusado do canvas. -->
 <main class="mb-page" style="flex: 1"
       th:with="total=${'R$ ' + #numbers.formatDecimal(order.totalAmount, 1, 'POINT', 2, 'COMMA')}">
     <div class="mb-container">
@@ -12,7 +10,6 @@
             <div th:replace="~{fragments/layout :: alerts}"></div>
         </div>
 
-        <!-- Aguardando: marketbuddies.js consulta /orders/{id}/status a cada 2 s e recarrega quando o banco responde -->
         <section th:if="${order.status.name() == 'AWAITING_PAYMENT'}" class="mb-card"
                  style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px"
                  th:attr="data-order-status-url=@{/orders/{id}/status(id=${order.id})}">
@@ -42,9 +39,10 @@
             </div>
         </section>
 
-        <!-- Aprovado -->
         <section th:if="${order.status.name() == 'APPROVED'}" class="mb-card"
-                 style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
+                 style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px"
+                 th:attr="data-order-status-url=${order.statusEmail == null} ? @{/orders/{id}/status(id=${order.id})} : null,
+                          data-order-wait=${order.statusEmail == null} ? 'email' : null">
             <div style="display: flex; gap: 16px; align-items: center">
                 <span style="width: 56px; height: 56px; flex: none; border-radius: 50%; background: var(--mb-success-bg); color: var(--mb-success); display: grid; place-items: center"><svg class="mb-icon" viewBox="0 0 24 24" style="width: 30px; height: 30px" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
                 <div style="display: flex; flex-direction: column; gap: 4px">
@@ -56,9 +54,12 @@
                 <span class="mb-badge mb-badge--success">Pago</span>
                 <span th:if="${order.statusEmail != null and order.statusEmail.name() == 'SENT'}" class="mb-badge mb-badge--success">E-mail enviado</span>
                 <span th:if="${order.statusEmail != null and order.statusEmail.name() == 'ERROR'}" class="mb-badge mb-badge--warning">E-mail não enviado</span>
-                <span th:if="${order.statusEmail == null}" class="mb-badge mb-badge--neutral">E-mail a caminho</span>
+                <span th:if="${order.statusEmail == null}" class="mb-badge mb-badge--neutral">Enviando e-mail…</span>
             </div>
-            <p th:if="${order.statusEmail == null or order.statusEmail.name() == 'SENT'}" style="margin: 0; color: var(--mb-ink-600)">
+            <p th:if="${order.statusEmail == null}" style="margin: 0; color: var(--mb-ink-600)">
+                Estamos enviando a confirmação para <strong style="color: var(--mb-ink-900)" th:text="${order.customerEmail}">ana.souza@exemplo.com</strong>.
+                Seu pedido já está sendo separado.</p>
+            <p th:if="${order.statusEmail != null and order.statusEmail.name() == 'SENT'}" style="margin: 0; color: var(--mb-ink-600)">
                 Enviamos a confirmação para <strong style="color: var(--mb-ink-900)" th:text="${order.customerEmail}">ana.souza@exemplo.com</strong>.
                 Agora é com a gente: seu pedido já está sendo separado.</p>
             <p th:if="${order.statusEmail != null and order.statusEmail.name() == 'ERROR'}" style="margin: 0; color: var(--mb-ink-600)">
@@ -82,7 +83,6 @@
             </div>
         </section>
 
-        <!-- Recusado (pelo banco ou por tempo esgotado, P1) -->
         <section th:if="${order.status.name() == 'REFUSED'}" class="mb-card"
                  style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
             <div style="display: flex; gap: 16px; align-items: center">
@@ -110,7 +110,6 @@
                 </div>
             </div>
             <div style="display: flex; gap: 12px; flex-wrap: wrap">
-                <!-- O botão desabilita no envio para um duplo clique não remontar o carrinho duas vezes -->
                 <form th:action="@{/orders/{id}/retry(id=${order.id})}" method="post" style="display: contents"
                       onsubmit="this.querySelector('button[type=submit]').disabled = true">
                     <button class="mb-btn mb-btn--buy" type="submit">Tentar de novo</button>

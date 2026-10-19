@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-// Principal das telas e da API: o e-mail é o username; id e nome vão para a navbar e para os pedidos.
 public class AuthUser implements UserDetails {
 
     private final Long id;

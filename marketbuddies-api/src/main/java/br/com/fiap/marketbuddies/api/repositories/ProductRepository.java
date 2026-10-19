@@ -8,22 +8,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
 
-    // Vitrine: busca por nome (vazio = todos), com ou sem filtro de categoria.
-    // Dois métodos derivados em vez de um JPQL com ":category is null", que o PostgreSQL não tipa.
     List<ProductEntity> findByNameContainingIgnoreCaseOrderByIdAsc(String name);
 
     List<ProductEntity> findByNameContainingIgnoreCaseAndCategoryOrderByIdAsc(String name, Category category);
 
-    // Ofertas da semana na landing: com desconto e com estoque.
+    List<ProductEntity> findByNameInAndImagePathIsNull(Collection<String> names);
+
     List<ProductEntity> findTop4ByDiscountPercentageGreaterThanAndStockGreaterThanOrderByDiscountPercentageDescIdAsc(
             BigDecimal discount, Integer stock);
 
-    // Reserva atômica (D17): só baixa se houver estoque. Devolve 0 quando falta,
-    // e quem chama lança OutOfStockException para o rollback desfazer o pedido inteiro.
+    /** Reserva atômica: devolve 0 sem estoque. */
     @Modifying(clearAutomatically = true)
     @Query("""
             update ProductEntity p
@@ -32,7 +31,6 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
             """)
     int reserve(@Param("id") Long id, @Param("qty") int qty);
 
-    // Devolução de estoque (pedido recusado ou expirado).
     @Modifying(clearAutomatically = true)
     @Query("""
             update ProductEntity p
@@ -40,8 +38,6 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
              where p.id = :id
             """)
     int release(@Param("id") Long id, @Param("qty") int qty);
-
-    // --- Dashboard da gerência (T8) ---
 
     interface StockRow {
         String getName();

@@ -29,22 +29,21 @@ public class ProductEntity {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal cost;
 
-    // 40.00 = 40%
     @Column(nullable = false, precision = 7, scale = 2)
     private BigDecimal markupPercentage;
 
-    // Sempre calculado pela aplicação (custo x (1 + markup)); nunca digitado.
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal price;
 
-    // 0 = sem oferta.
     @Column(nullable = false, precision = 5, scale = 2)
     private BigDecimal discountPercentage = BigDecimal.ZERO;
 
     @Column(nullable = false)
     private Integer stock;
 
-    // Trava otimista (P3): reserve/release no repositório também incrementam a versão.
+    @Column(length = 120)
+    private String imagePath;
+
     @Version
     private Long version;
 
@@ -55,7 +54,6 @@ public class ProductEntity {
                 .setScale(2, RoundingMode.HALF_UP);
     }
 
-    // Preço cobrado, já com a oferta.
     @Transient
     public BigDecimal getFinalPrice() {
         return price.multiply(BigDecimal.ONE.subtract(discountPercentage.movePointLeft(2)))

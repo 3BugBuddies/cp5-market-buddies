@@ -24,8 +24,6 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// Igual ao AuthController da Aula 13. Credencial errada lança AuthenticationException,
-// que o ApiExceptionHandler devolve como 401 "Usuário ou senha inválidos".
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

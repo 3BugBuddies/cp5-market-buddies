@@ -18,7 +18,7 @@ public class PaymentController {
 
 	private final AuthorizationService authorizationService;
 
-	// A recusa também é 200: é uma decisão de negócio, não um erro de requisição.
+	/** A recusa também é 200: é decisão de negócio, não erro de requisição. */
 	@PostMapping("/authorize")
 	public ResponseEntity<AuthorizationResponseDto> authorize(@Valid @RequestBody AuthorizationRequestDto request) {
 		return ResponseEntity.ok(authorizationService.authorize(request));

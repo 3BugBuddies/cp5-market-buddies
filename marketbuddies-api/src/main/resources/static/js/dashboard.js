@@ -1,10 +1,7 @@
-// Dashboard da gerência: os três gráficos com Chart.js.
-// Os dados vêm do servidor em window.MB_DASHBOARD (template admin/dashboard, th:inline="javascript").
 (() => {
   const data = window.MB_DASHBOARD;
   if (!data || typeof Chart === 'undefined') return;
 
-  // Cores do design system (tokens em marketbuddies.css).
   const css = getComputedStyle(document.documentElement);
   const token = (name, fallback) => css.getPropertyValue(name).trim() || fallback;
   const blue = token('--mb-blue-700', '#1a4fa0');
@@ -23,11 +20,9 @@
   Chart.defaults.maintainAspectRatio = false;
   Chart.defaults.animation = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? false : Chart.defaults.animation;
 
-  // Em barra horizontal (indexAxis 'y') o valor está em x.
   const valueOf = (ctx) => (ctx.chart.options.indexAxis === 'y' ? ctx.parsed.x : ctx.parsed.y);
   const moneyTooltip = { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${brl.format(valueOf(ctx))}` } };
 
-  // Vendas × lucro dos últimos 7 dias.
   new Chart(document.getElementById('chart-days'), {
     type: 'bar',
     data: {
@@ -38,7 +33,6 @@
       ]
     },
     options: {
-      // A legenda é HTML no cabeçalho do card, como na tela de referência.
       plugins: { legend: { display: false }, tooltip: moneyTooltip },
       scales: {
         x: { grid: { display: false } },
@@ -47,7 +41,6 @@
     }
   });
 
-  // Vendas da semana por categoria (categoria gravada no item).
   new Chart(document.getElementById('chart-categories'), {
     type: 'bar',
     data: {
@@ -64,13 +57,11 @@
     }
   });
 
-  // Nome longo de produto encolhe o gráfico no celular: corta o rótulo do eixo (o tooltip mostra o nome inteiro).
   const shortLabel = (chart, label) => {
     const max = chart.width < 500 ? 16 : 32;
     return label.length > max ? label.slice(0, max - 1) + '…' : label;
   };
 
-  // Estoque por produto, em vermelho quando ≤ 5.
   const low = data.stockLow || [];
   new Chart(document.getElementById('chart-stock'), {
     type: 'bar',

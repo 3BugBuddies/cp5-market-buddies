@@ -5,8 +5,6 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 - **Parte I:** loja web com landing, login e cadastro próprios, perfis CUSTOMER e ADMIN, CRUD de produtos pelo ADMIN e página 403 estilizada, tudo no PostgreSQL.
 - **Parte II:** carrinho, checkout, pedido de pagamento publicado no RabbitMQ, integração com o Tranquilo Bank, resposta assíncrona, e-mail de confirmação registrado no banco e dashboard da gerência.
 
-> Rascunho em construção. Os trechos marcados com _a preencher_ e os comentários `print pendente` entram quando o sistema estiver rodando.
-
 ---
 
 ## Deploy
@@ -19,7 +17,7 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 | Painel do RabbitMQ | https://rabbitmq-production-e3dc.up.railway.app |
 | Vídeo | _a preencher_ |
 
-> O deploy roda no plano de teste do Railway, que tem **crédito limitado**. Os serviços ficam no ar até aproximadamente _a preencher após a medição de consumo_ (data). Depois disso, a aplicação pode ficar indisponível; o vídeo e os prints deste README mostram o fluxo completo.
+> O deploy roda no plano de teste do Railway, que tem **crédito limitado**. Previsão de ficar no ar até **01/11/2026** (consumo medido: ~886 MB de RAM somados nos 5 serviços, ~US$ 0,32/dia). Depois disso, a aplicação pode ficar indisponível; o vídeo e os prints deste README mostram o fluxo completo.
 
 <!-- print pendente: assets/railway-servicos.png -->
 <!-- print pendente: assets/railway-deploy.png -->
@@ -90,23 +88,34 @@ cp5-market-buddies/
 ├── marketbuddies-api/        # loja web, API REST e mensageria (porta 8080)
 │   └── src/main/
 │       ├── java/.../api/
-│       │   ├── configs/      # segurança, RabbitMQ e dados iniciais
-│       │   ├── controllers/  # telas e /api/**
-│       │   ├── services/     # regras de negócio
-│       │   ├── facades/      # fluxo do pagamento
+│       │   ├── configs/      # segurança, RabbitMQ, propriedades e dados iniciais
+│       │   ├── security/     # filtro e utilitário do JWT
+│       │   ├── controllers/  # telas, /api/** e handlers de erro
+│       │   ├── facades/      # fluxo do pagamento (pedido → fila → resposta)
+│       │   ├── services/     # regras de negócio, carrinho, e-mail, dashboard e job de expiração
 │       │   ├── producers/    # publica o pedido de pagamento
 │       │   ├── consumers/    # lê as respostas do pagamento
+│       │   ├── dtos/         # records de entrada e saída
 │       │   ├── entities/     # tabelas
-│       │   └── repositories/
+│       │   ├── enums/        # status, perfis e categorias
+│       │   ├── exceptions/   # exceções de negócio
+│       │   └── repositories/ # acesso ao banco
 │       └── resources/
 │           ├── static/       # CSS, JS e imagens
 │           └── templates/    # telas Thymeleaf
+│               └── email/    # template HTML do e-mail de confirmação
 ├── marketbuddies-worker/     # integração de pagamentos (sem porta)
 │   └── src/main/java/.../worker/
+│       ├── configs/          # filas, conversor JSON e cliente HTTP
 │       ├── consumers/        # lê o pedido de pagamento
 │       ├── clients/          # chama o Tranquilo Bank
-│       └── producers/        # publica a resposta
+│       ├── producers/        # publica a resposta
+│       └── dtos/             # mensagens trocadas na fila
 ├── tranquilo-bank/           # API do banco (porta 8090)
+│   └── src/main/java/.../tranquilobank/
+│       ├── controllers/      # POST /api/payments/authorize
+│       ├── services/         # regra de aprovação
+│       └── dtos/             # pedido e resposta da autorização
 ├── postman/                  # coleção e exemplos de JSON
 ├── assets/                   # imagens deste README
 └── docker-compose.yml        # PostgreSQL + RabbitMQ local
@@ -164,7 +173,7 @@ Seguimos o padrão JWT da aula de Spring Security, sem sessão, nas telas e na A
 - **Cadastro:** cria sempre um CUSTOMER, com e-mail único e senha guardada como hash.
 - **CSRF:** fica ligado nas telas, porque o cookie vai sozinho em toda requisição, e desligado na API, que usa o header.
 
-<!-- print pendente: assets/tela-login.png (ver Demonstração Visual) -->
+<!-- print pendente: assets/tela-login.png -->
 
 ---
 
@@ -259,9 +268,11 @@ Como no `EmailService` do professor (`RabbitmqSpringEmail`), cada tentativa é g
 
 O envio acontece depois que o status do pedido foi gravado, para não segurar conexão do banco durante o SMTP. Se o e-mail falhar, o dashboard mostra o badge de falha e o ADMIN pode usar "Reenviar e-mail".
 
-**Assunto:** `MarketBuddies · Pagamento confirmado do pedido #42`. **Corpo:** nome do cliente, itens com quantidade e preço, total, código de autorização e "Obrigado por comprar no MarketBuddies!".
+**Assunto:** `MarketBuddies · Pagamento confirmado do pedido #42`. **Corpo:** HTML montado pelo template Thymeleaf `templates/email/order-confirmation.html` (com alternativa em texto puro), com nome do cliente, itens com quantidade e preço, total, código de autorização e "Obrigado por comprar no MarketBuddies!".
 
-<!-- print pendente: assets/email-confirmacao.png (e-mail recebido no Gmail) -->
+> **E-mail no deploy:** o plano Trial do Railway bloqueia SMTP de saída ("SMTP is only available on the Pro plan and above", [documentação](https://docs.railway.com/reference/outbound-networking)). Por isso, no deploy o envio fica registrado como `ERROR` (timeout na porta 587), e o resto do fluxo funciona normalmente. Rodando local, o e-mail chega, como mostra o vídeo. O ADMIN pode usar "Reenviar e-mail" no dashboard.
+
+<!-- print pendente: assets/email-confirmacao.png -->
 <!-- print pendente: assets/banco-emails.png (select em TB_EMAILS com SENT/ERROR) -->
 
 ---
@@ -317,9 +328,9 @@ O limite de aprovação (R$ 500,00) não é variável de ambiente: fica em `tran
 | Perfil | E-mail | Senha |
 |--------|--------|-------|
 | CUSTOMER | `cliente@marketbuddies.com` | `cliente123` |
-| ADMIN | informado no `.txt` da entrega | informado no `.txt` da entrega |
+| ADMIN | exibido na tela de login e no `.txt` da entrega | exibida na tela de login e no `.txt` da entrega |
 
-A conta de cliente é criada pelo seed (nome "Ana Souza") e aparece num quadro "Conta de teste" na tela de login. A senha do ADMIN fica só no `.txt` da entrega, porque a conta dá acesso à gestão de produtos e ao dashboard.
+A conta de cliente é criada pelo seed (nome "Ana Souza"). A tela de login mostra as duas contas, cliente e ADMIN, no quadro "Contas de teste", com botão de copiar o e-mail e a senha.
 
 ---
 
@@ -475,6 +486,8 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 }
 ```
 
+<!-- print pendente: assets/postman-corpo-invalido.png -->
+
 **10. E-mails enviados** — `GET {{api}}/api/emails` com o `Bearer` de ADMIN, resposta `200` com os registros de `TB_EMAILS` (`SENT`/`ERROR`), do mais recente ao mais antigo.
 
 <!-- print pendente: assets/postman-emails.png -->
@@ -518,7 +531,7 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 
 <!-- print pendente: assets/postman-runner.png -->
 
-> Os JSONs acima são os de `postman/exemplos.md`, escritos a partir dos contratos da spec. Serão trocados pelas respostas reais quando os prints forem tirados.
+> Os JSONs acima são os de `postman/exemplos.md`. Datas, ids e códigos de autorização mudam a cada execução.
 
 ---
 
@@ -527,9 +540,14 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 Painel no Railway: https://rabbitmq-production-e3dc.up.railway.app (usuário e senha no `.txt` da entrega). Local: http://localhost:15672.
 
 - **Exchanges** — as três `direct`.
-  <!-- print pendente: assets/rabbitmq-exchanges.png -->
-- **Filas** — as três filas com mensagens trafegadas depois de uma compra.
-  <!-- print pendente: assets/rabbitmq-filas.png -->
+
+  ![Exchanges no painel do RabbitMQ](assets/rabbitmq-exchanges.png)
+- **Conexões** — a api e o worker conectados.
+
+  ![Conexões no painel do RabbitMQ](assets/rabbitmq-conexoes.png)
+- **Filas** — as três filas.
+
+  ![Filas no painel do RabbitMQ](assets/rabbitmq-filas.png)
 - **Mensagem** — "Get messages" mostrando o JSON de um pedido.
   <!-- print pendente: assets/rabbitmq-mensagem.png -->
 
@@ -538,7 +556,7 @@ Painel no Railway: https://rabbitmq-production-e3dc.up.railway.app (usuário e s
 O enunciado pede "testes internos do RabbitMQ Monitor". Roteiro:
 
 1. **Publicar pelo painel:** em `payment-request-exchange`, "Publish message" com um `PaymentRequestDto` e routing key `payment-request-routing-key`. Esperado: uma mensagem chega em `payment-response-success-queue` (valor até R$ 500,00) ou em `payment-response-error-queue` (valor acima).
-   <!-- print pendente: assets/rabbitmq-publicar.png (I4) -->
+   <!-- print pendente: assets/rabbitmq-publicar.png -->
 2. **Banco parado:** com o `tranquilo-bank` desligado, publicar de novo. Esperado: depois de 3 tentativas, uma mensagem em `payment-response-error-queue` com "Banco indisponível".
 3. **Resposta repetida:** reenviar na fila de sucesso a resposta de um pedido já aprovado. Esperado: nada muda na tela e nenhuma linha nova no banco (log "resposta ignorada").
 4. **Compra de ponta a ponta:** comprar pela tela e acompanhar os contadores das três filas.
@@ -563,13 +581,13 @@ Tela `/admin/dashboard` (ADMIN), com Chart.js. Os dados vêm do banco; o lucro u
 
 - **Java 21**
 - **Spring Boot 4.1.1**
-- **Spring Web (MVC) + Thymeleaf**
-- **Spring Security + JWT (jjwt)**
+- **Spring Web (MVC) + Thymeleaf** (telas e e-mail HTML)
+- **Spring Security + JWT** (jjwt 0.12.6)
 - **Spring Data JPA + Hibernate**
 - **PostgreSQL**
 - **Spring for RabbitMQ** (RabbitMQ 4)
 - **Java Mail Sender** (Gmail SMTP)
-- **Chart.js** (dashboard)
+- **Chart.js 4.4.1** (dashboard)
 - **Lombok**
 - **Postman**
 - **Docker** e **Railway**

@@ -32,11 +32,6 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-// Dashboard da gerência. As somas e contagens são feitas no banco (consultas dos repositórios);
-// aqui só se monta a tela: dias sem venda viram zero, percentuais e rótulos.
-//
-// "Hoje" é o dia do fuso padrão da JVM, o mesmo usado para gravar createdAt. No deploy a JVM sobe com
-// -Duser.timezone=America/Sao_Paulo (Dockerfile), então o dia é o de Brasília.
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -113,7 +108,6 @@ public class DashboardService {
                 .collect(Collectors.toMap(OrderRepository.StatusCount::getStatus, OrderRepository.StatusCount::getTotal));
     }
 
-    // Todas as categorias aparecem, mesmo sem venda, da maior para a menor.
     private List<CategoryPoint> categories(LocalDateTime from, LocalDateTime to) {
         Map<Category, BigDecimal> sales = new EnumMap<>(Category.class);
         orderItemRepository.approvedSalesByCategory(from, to)
@@ -150,7 +144,6 @@ public class DashboardService {
             return new RecentOrder(row.getId(), row.getCustomerName(), row.getCreatedAt(), row.getTotalAmount(),
                     approved ? profitByOrder.get(row.getId()) : null,
                     row.getStatus(), email,
-                    // P5: o botão "Reenviar e-mail" entra com a T7; a regra de quem pode já fica aqui.
                     approved && email != StatusEmail.SENT);
         }).toList();
     }
@@ -159,7 +152,6 @@ public class DashboardService {
         return count == 0 ? BigDecimal.ZERO : total.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
     }
 
-    // Variação percentual inteira contra a base; nula quando a base é zero (não há com o que comparar).
     private static Integer variation(BigDecimal current, BigDecimal base) {
         if (base == null || base.signum() == 0) {
             return null;

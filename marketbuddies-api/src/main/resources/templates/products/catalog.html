@@ -12,7 +12,6 @@
                 <span class="mb-page-header__sub"
                       th:text="${#lists.size(products)} == 1 ? '1 produto' : ${#lists.size(products)} + ' produtos'">8 produtos</span>
             </div>
-            <!-- GET: a busca fica na URL e mantém a categoria escolhida -->
             <form class="mb-catalog-search" th:action="@{/products}" method="get" role="search">
                 <input type="hidden" name="category" th:if="${category != null}" th:value="${category.name()}">
                 <div class="mb-field">

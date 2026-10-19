@@ -7,13 +7,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.math.BigDecimal;
 
-// Produto para leitura: vitrine, detalhe, landing, tabela da gestão e GET /api/products.
-// cost, markupPercentage e version são dados internos: só a gestão os preenche (ProductService.listForAdmin)
-// e o @JsonIgnore garante que nunca saiam no JSON da API pública.
-// version vai no campo oculto do modal de edição (P3).
-// Ordem alfabética explícita: a mesma do JSON da classe com @Data. Sem a lista, o Jackson 3 põe os
-// componentes do record primeiro, na ordem do construtor (alphabetic = true não basta).
-@JsonPropertyOrder({"category", "description", "discountPercentage", "finalPrice", "id", "name", "onSale", "price",
+/** Ordem explícita: sem ela o Jackson 3 põe os componentes do record na ordem do construtor. */
+@JsonPropertyOrder({"category", "description", "discountPercentage", "finalPrice", "id", "imagePath", "name", "onSale", "price",
         "stock"})
 public record ProductDto(
         Long id,
@@ -25,11 +20,11 @@ public record ProductDto(
         BigDecimal discountPercentage,
         Integer stock,
         Boolean onSale,
+        String imagePath,
         @JsonIgnore BigDecimal cost,
         @JsonIgnore BigDecimal markupPercentage,
         @JsonIgnore Long version) {
 
-    // withInternalData = false deixa custo, markup e versão nulos (vitrine e API pública).
     public static ProductDto from(ProductEntity product, boolean withInternalData) {
         return new ProductDto(
                 product.getId(),
@@ -41,6 +36,7 @@ public record ProductDto(
                 product.getDiscountPercentage(),
                 product.getStock(),
                 product.isOnSale(),
+                product.getImagePath(),
                 withInternalData ? product.getCost() : null,
                 withInternalData ? product.getMarkupPercentage() : null,
                 withInternalData ? product.getVersion() : null);

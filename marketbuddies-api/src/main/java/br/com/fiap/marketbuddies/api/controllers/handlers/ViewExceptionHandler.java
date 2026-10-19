@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
 
-// Exceções de domínio lançadas pelas telas viram páginas de erro estilizadas.
-// O resto (404 de rota, 500) fica com o BasicErrorController, que já usa templates/error/*.
 @ControllerAdvice
 public class ViewExceptionHandler {
 

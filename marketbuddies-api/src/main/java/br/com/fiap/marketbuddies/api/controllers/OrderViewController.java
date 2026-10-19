@@ -16,11 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// Tela do pedido (aguardando · aprovado · recusado). Só CUSTOMER (SecurityConfig) e só o dono:
-// o pedido de outro cliente responde 404, como se não existisse (OrderService.getOrder).
 @Controller
 @RequestMapping("/orders/{id}")
 @RequiredArgsConstructor
@@ -36,14 +35,16 @@ public class OrderViewController {
         return "orders/order";
     }
 
-    // Consultado a cada 2 s pela tela "aguardando" (marketbuddies.js); quando muda, a tela recarrega.
     @GetMapping("/status")
     @ResponseBody
     public Map<String, Object> status(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
-        return Map.of("status", orderService.getOrder(id, user.getId(), false).status());
+        OrderDto order = orderService.getOrder(id, user.getId(), false);
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", order.status());
+        body.put("statusEmail", order.statusEmail());
+        return body;
     }
 
-    // "Tentar de novo": remonta o carrinho com os itens do pedido recusado e leva ao checkout.
     @PostMapping("/retry")
     public String retry(@PathVariable Long id, @AuthenticationPrincipal AuthUser user, RedirectAttributes redirect) {
         List<RetryItemDto> items = orderService.retryItems(id, user.getId());

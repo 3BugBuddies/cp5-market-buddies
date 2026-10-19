@@ -24,9 +24,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 
-// Igual ao JwtAuthFilter da Aula 13, mas o token vem do header "Authorization: Bearer …" (API)
-// ou do cookie MB_TOKEN (telas). Token inválido ou expirado não autentica e não interrompe a cadeia;
-// quem decide o 401/redirect é o exceptionHandling do SecurityConfig.
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -56,7 +53,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             boolean authenticated = authenticate(token, request, response);
             if (!authenticated && fromCookie) {
-                // Cookie com token vencido ou adulterado: apaga para a navbar voltar a "Entrar"
                 response.addHeader(HttpHeaders.SET_COOKIE, clearCookie(request.isSecure()).toString());
             }
         }
@@ -77,12 +73,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(auth);
             SecurityContextHolder.setContext(context);
-            // Guarda também na requisição: o despacho de erro (página 404/500) não passa por este
-            // filtro de novo e, sem isso, a navbar da página de erro mostraria "Entrar"
             contextRepository.saveContext(context, request, response);
             return true;
         } catch (Exception ex) {
-            // Assinatura inválida, token expirado ou usuário que não existe mais
             log.debug("JWT rejeitado: {}", ex.getMessage());
             return false;
         }
@@ -101,7 +94,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 .orElse(null);
     }
 
-    // Cookie do login: HttpOnly, SameSite=Lax, Path=/, Max-Age = expiração do token, Secure atrás do https.
     public static ResponseCookie tokenCookie(String token, long expirationMs, boolean secure) {
         return ResponseCookie.from(COOKIE_NAME, token)
                 .httpOnly(true)
@@ -112,7 +104,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 .build();
     }
 
-    // Mesmo nome, path e flags do cookie do login, com Max-Age=0.
     public static ResponseCookie clearCookie(boolean secure) {
         return ResponseCookie.from(COOKIE_NAME, "")
                 .httpOnly(true)

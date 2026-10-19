@@ -15,16 +15,25 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
-// Dados iniciais: só insere quando a tabela respectiva está vazia.
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
-    // Conta de cliente de teste, à mostra na tela de login (AuthViewController) para a correção.
     public static final String TEST_CUSTOMER_EMAIL = "cliente@marketbuddies.com";
     public static final String TEST_CUSTOMER_PASSWORD = "cliente123";
+
+    private static final Map<String, String> SEED_IMAGES = Map.of(
+            "Banana prata (kg)", "/img/products/banana.jpg",
+            "Maçã gala (kg)", "/img/products/maca-gala.jpg",
+            "Detergente neutro 500 ml", "/img/products/detergente.jpg",
+            "Sabão em pó 1 kg", "/img/products/sabao-em-po.jpg",
+            "Água mineral sem gás 1,5 L", "/img/products/agua-mineral.jpg",
+            "Pão de forma integral", "/img/products/pao-integral.jpg",
+            "Café torrado e moído 500 g", "/img/products/cafe.jpg",
+            "Leite integral 1 L", "/img/products/leite.jpg");
 
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
@@ -36,6 +45,7 @@ public class DataSeeder implements CommandLineRunner {
     public void run(String... args) {
         seedUsers();
         seedProducts();
+        backfillProductImages();
     }
 
     private void seedUsers() {
@@ -67,6 +77,17 @@ public class DataSeeder implements CommandLineRunner {
         log.info("Seed: 8 produtos criados");
     }
 
+    /** Preenche a foto dos produtos do seed em bancos semeados antes da coluna existir; nunca sobrescreve. */
+    private void backfillProductImages() {
+        List<ProductEntity> missing = productRepository.findByNameInAndImagePathIsNull(SEED_IMAGES.keySet());
+        if (missing.isEmpty()) {
+            return;
+        }
+        missing.forEach(product -> product.setImagePath(SEED_IMAGES.get(product.getName())));
+        productRepository.saveAll(missing);
+        log.info("Seed: imagem preenchida em {} produtos", missing.size());
+    }
+
     private UserEntity user(String fullName, String email, String rawPassword, Role role) {
         UserEntity user = new UserEntity();
         user.setFullName(fullName);
@@ -86,6 +107,7 @@ public class DataSeeder implements CommandLineRunner {
         product.setDiscountPercentage(new BigDecimal(discount));
         product.setStock(stock);
         product.setDescription(description);
+        product.setImagePath(SEED_IMAGES.get(name));
         return product;
     }
 }

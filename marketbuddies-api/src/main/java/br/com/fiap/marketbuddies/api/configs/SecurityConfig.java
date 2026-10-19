@@ -29,13 +29,6 @@ import tools.jackson.databind.json.JsonMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-// Segurança no padrão da Aula 13: JWT, sem sessão de login, filtro antes do UsernamePasswordAuthenticationFilter.
-// Diferenças para a aula:
-//  - o token vem do header Bearer (API) ou do cookie MB_TOKEN (telas), ver JwtAuthFilter;
-//  - não há DaoAuthenticationProvider declarado. Com exatamente um UserDetailsService
-//    (UserDetailsServiceImpl) e um PasswordEncoder (UserConfig) no contexto, o Spring Security
-//    monta esse provider sozinho e o AuthenticationManager abaixo já o usa;
-//  - CSRF ligado nas telas, porque o cookie de autenticação vai junto em toda requisição do navegador.
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -53,25 +46,18 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         .sessionFixation(fixation -> fixation.none()))
-                // Telas: token no cookie XSRF-TOKEN e no campo _csrf que o Thymeleaf põe nos forms.
-                // API: autenticada por Bearer, que o navegador não envia sozinho.
-                // A estratégia nula evita que o Spring trate cada requisição autenticada pelo cookie
-                // (até o GET do CSS) como "login novo" e troque o token CSRF: o form já aberto daria 403
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
                         .ignoringRequestMatchers("/api/**"))
-                // POST /logout é do AuthViewController (apaga o cookie); o filtro padrão o interceptaria
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // API
                         .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
                         .requestMatchers("/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")
                         .requestMatchers("/api/orders/**").authenticated()
                         .requestMatchers("/api/emails/**").hasRole("ADMIN")
-                        // Telas
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/checkout/**", "/orders/**").hasRole("CUSTOMER")
                         .requestMatchers("/", "/login", "/logout", "/signup", "/products/**", "/cart/**",
@@ -86,7 +72,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Sem token (ou token inválido): API → 401 JSON; tela → login, voltando depois para onde estava.
     private AuthenticationEntryPoint authenticationEntryPoint(JsonMapper jsonMapper) {
         return (request, response, authException) -> {
             if (isApi(request)) {
@@ -100,7 +85,6 @@ public class SecurityConfig {
         };
     }
 
-    // Logado sem o papel certo: API → 403 JSON; tela → página error/403 com status 403 (forward, não redirect).
     private AccessDeniedHandler accessDeniedHandler(JsonMapper jsonMapper) {
         AccessDeniedHandlerImpl page = new AccessDeniedHandlerImpl();
         page.setErrorPage("/403");

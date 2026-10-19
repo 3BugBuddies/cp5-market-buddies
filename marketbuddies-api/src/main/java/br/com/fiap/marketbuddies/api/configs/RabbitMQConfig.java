@@ -11,8 +11,6 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-// Mesmas exchanges, filas e bindings do RabbitMQConfig do worker. Declarar dos dois lados é idempotente
-// e deixa subir os serviços em qualquer ordem; os argumentos precisam ser iguais, senão o broker recusa.
 @Configuration
 public class RabbitMQConfig {
 
@@ -73,7 +71,6 @@ public class RabbitMQConfig {
         return BindingBuilder.bind(paymentErrorQueue()).to(paymentErrorExchange()).with(ERROR_ROUTING_KEY);
     }
 
-    // Spring AMQP 4.x usa Jackson 3; o Jackson2JsonMessageConverter da demo do professor não funciona no Boot 4.1.
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new JacksonJsonMessageConverter();

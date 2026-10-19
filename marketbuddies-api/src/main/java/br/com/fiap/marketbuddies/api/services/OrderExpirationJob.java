@@ -10,9 +10,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// P1: pedido que espera o banco além de marketbuddies.orders.expiration (5 min) vira REFUSED "Tempo esgotado"
-// e devolve o estoque. Cobre o broker fora do ar e a mensagem descartada, que deixariam a reserva presa.
-// O initialDelay evita rodar no instante da subida (inclusive no contextLoads do verify).
 @Slf4j
 @Component
 @RequiredArgsConstructor

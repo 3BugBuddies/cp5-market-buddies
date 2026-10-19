@@ -10,7 +10,6 @@
                 <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path><path d="M9 9l4 4M13 9l-4 4"></path></svg>
             </span>
             <h1 class="mb-empty__title">Não encontramos essa página.</h1>
-            <!-- A mensagem só aparece quando vem de uma NotFoundException do domínio (ViewExceptionHandler) -->
             <p th:if="${message != null and message != '' and message != 'No message available'}" th:text="${message}">Produto não encontrado.</p>
             <p th:unless="${message != null and message != '' and message != 'No message available'}">O endereço pode estar errado ou o item saiu do catálogo.</p>
             <a class="mb-btn mb-btn--primary" th:href="@{/products}">Ver produtos</a>

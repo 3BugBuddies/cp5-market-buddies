@@ -4,8 +4,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-// Formulário de cadastro. A confirmação igual à senha é conferida no UserService.
-// password: 72 é o limite do BCrypt.
 public record SignUpDto(
         @NotBlank(message = "Informe seu nome completo")
         @Size(max = 120, message = "O nome pode ter até 120 caracteres")
@@ -23,7 +21,6 @@ public record SignUpDto(
         @NotBlank(message = "Confirme a senha")
         String confirmPassword) {
 
-    // Formulário vazio do GET /signup.
     public static SignUpDto empty() {
         return new SignUpDto(null, null, null, null);
     }

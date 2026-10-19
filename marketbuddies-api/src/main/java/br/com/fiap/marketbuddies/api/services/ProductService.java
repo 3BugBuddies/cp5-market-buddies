@@ -26,7 +26,6 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final OrderItemRepository orderItemRepository;
 
-    // Vitrine e GET /api/products: sem custo nem markup.
     @Transactional(readOnly = true)
     public List<ProductDto> listCatalog(String search, Category category) {
         String name = search == null ? "" : search.trim();
@@ -36,7 +35,6 @@ public class ProductService {
         return products.stream().map(p -> ProductDto.from(p, false)).toList();
     }
 
-    // Ofertas da semana na landing.
     @Transactional(readOnly = true)
     public List<ProductDto> listOffers() {
         return productRepository
@@ -50,13 +48,11 @@ public class ProductService {
         return ProductDto.from(find(id), false);
     }
 
-    // Tabela da gestão: com custo, markup e versão (só a tela de ADMIN usa).
     @Transactional(readOnly = true)
     public List<ProductDto> listForAdmin() {
         return productRepository.findAll(Sort.by("id")).stream().map(p -> ProductDto.from(p, true)).toList();
     }
 
-    // Valores atuais do banco, para reabrir o modal depois de um conflito de versão.
     @Transactional(readOnly = true)
     public ProductFormDto findForm(Long id) {
         return ProductFormDto.from(find(id));
@@ -72,10 +68,7 @@ public class ProductService {
         return ProductDto.from(saved, true);
     }
 
-    // P3: a versão do form precisa ser a do banco. Se uma compra (reserve) ou outro admin mexeu no produto
-    // depois que o modal abriu, lança o conflito em vez de gravar o estoque antigo por cima.
-    // A corrida entre esta comparação e o flush cai no mesmo ObjectOptimisticLockingFailureException,
-    // porque o UPDATE do Hibernate leva "where version = ?".
+    /** Lança conflito de versão se o produto mudou depois que o modal abriu. */
     @Transactional
     public ProductDto update(Long id, ProductFormDto form) {
         ProductEntity product = find(id);
@@ -89,8 +82,7 @@ public class ProductService {
         return ProductDto.from(product, true);
     }
 
-    // P2: produto já vendido não quebra por FK. Os itens antigos perdem o vínculo (product_id = null)
-    // e continuam legíveis pela cópia de nome, categoria, preço e custo. Devolve o nome para o flash.
+    /** Solta o vínculo dos itens já vendidos antes de excluir; devolve o nome do produto. */
     @Transactional
     public String delete(Long id) {
         String name = find(id).getName();
@@ -112,7 +104,6 @@ public class ProductService {
         }
     }
 
-    // Campos editáveis do form; id e versão nunca vêm do form (o id é o da rota e a versão é do Hibernate).
     private static void apply(ProductFormDto form, ProductEntity product) {
         product.setName(form.name());
         product.setCategory(form.category());

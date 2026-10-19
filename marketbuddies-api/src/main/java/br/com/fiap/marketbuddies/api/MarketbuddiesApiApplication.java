@@ -7,7 +7,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-// Job de expiração dos pedidos (P1, services/OrderExpirationJob)
 @EnableScheduling
 public class MarketbuddiesApiApplication {
 

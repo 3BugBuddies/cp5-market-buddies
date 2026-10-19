@@ -24,8 +24,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // Sem @Transactional de propósito: o saveAndFlush roda na transação do próprio repositório,
-    // então a violação do unique (dois cadastros ao mesmo tempo) chega aqui e vira o mesmo erro no campo.
+    /** Sem {@code @Transactional} de propósito: a violação do unique chega aqui e vira erro no campo. */
     public UserEntity register(SignUpDto dto) {
         if (!dto.password().equals(dto.confirmPassword())) {
             throw new FieldValidationException("confirmPassword", "As senhas não conferem");
@@ -39,7 +38,6 @@ public class UserService {
         user.setFullName(dto.fullName().trim());
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(dto.password()));
-        // Cadastro público sempre cria cliente; ADMIN só pelo seed
         user.setRole(Role.CUSTOMER);
 
         try {
