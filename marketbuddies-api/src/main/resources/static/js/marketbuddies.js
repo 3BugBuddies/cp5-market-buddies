@@ -39,6 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// Tela do pedido aguardando o banco: <section data-order-status-url="/orders/42/status">.
+// Consulta o status a cada 2 s e recarrega a página quando o banco responde (APPROVED ou REFUSED).
+// Para de consultar se a resposta não for JSON 200 (ex.: o login expirou e veio a tela de login).
+function pollOrderStatus(section) {
+  const url = section.dataset.orderStatusUrl;
+  const timer = setInterval(async () => {
+    try {
+      const response = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+      const type = response.headers.get('Content-Type') || '';
+      if (!response.ok || !type.includes('application/json')) {
+        clearInterval(timer);
+        return;
+      }
+      const body = await response.json();
+      if (body.status && body.status !== 'AWAITING_PAYMENT') {
+        clearInterval(timer);
+        window.location.reload();
+      }
+    } catch (e) {
+      clearInterval(timer);
+    }
+  }, 2000);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-order-status-url]').forEach(pollOrderStatus);
+});
+
 // Produtos (T5): stepper do detalhe e modais da gestão.
 document.addEventListener('DOMContentLoaded', () => {
   const brl = (value) => 'R$ ' + value.toFixed(2).replace('.', ',');

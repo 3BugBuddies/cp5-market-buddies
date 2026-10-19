@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${'Pedido #' + order.id})}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('nenhum')}"></header>
+<!-- Três estados numa view só (aguardando · aprovado · recusado), como as telas PedidoAguardando,
+     PedidoAprovado e PedidoRecusado do canvas. -->
+<main class="mb-page" style="flex: 1"
+      th:with="total=${'R$ ' + #numbers.formatDecimal(order.totalAmount, 1, 'POINT', 2, 'COMMA')}">
+    <div class="mb-container">
+        <div style="max-width: 640px; margin: 0 auto">
+            <div th:replace="~{fragments/layout :: alerts}"></div>
+        </div>
+
+        <!-- Aguardando: marketbuddies.js consulta /orders/{id}/status a cada 2 s e recarrega quando o banco responde -->
+        <section th:if="${order.status.name() == 'AWAITING_PAYMENT'}" class="mb-card"
+                 style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px"
+                 th:attr="data-order-status-url=@{/orders/{id}/status(id=${order.id})}">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap">
+                <h1 style="margin: 0" th:text="${'Pedido #' + order.id}">Pedido #1042</h1>
+                <span class="mb-badge mb-badge--warning">Aguardando banco</span>
+            </div>
+            <p style="margin: 0; color: var(--mb-ink-600)">Recebemos seu pedido de
+                <strong style="color: var(--mb-ink-900)" th:text="${total}">R$ 33,83</strong>.
+                O Tranquilo Bank está confirmando o pagamento; esta página atualiza sozinha.</p>
+            <ol class="mb-steps">
+                <li class="mb-steps__item mb-steps__item--done">
+                    <span class="mb-steps__dot"><svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+                    <span th:text="${'Pedido criado · ' + #temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Pedido criado · 18/10/2026 20:52</span>
+                </li>
+                <li class="mb-steps__item mb-steps__item--done">
+                    <span class="mb-steps__dot"><svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+                    <span>Itens reservados no estoque</span>
+                </li>
+                <li class="mb-steps__item mb-steps__item--now"><span class="mb-steps__dot"></span><span>Aguardando confirmação do Tranquilo Bank</span></li>
+                <li class="mb-steps__item"><span class="mb-steps__dot"></span>
+                    <span th:text="${'E-mail de confirmação para ' + order.customerEmail}">E-mail de confirmação para ana.souza@exemplo.com</span></li>
+            </ol>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap">
+                <a class="mb-btn mb-btn--primary" th:href="@{/orders/{id}(id=${order.id})}">Atualizar status</a>
+                <a class="mb-btn mb-btn--ghost" th:href="@{/products}">Voltar à loja</a>
+            </div>
+        </section>
+
+        <!-- Aprovado -->
+        <section th:if="${order.status.name() == 'APPROVED'}" class="mb-card"
+                 style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
+            <div style="display: flex; gap: 16px; align-items: center">
+                <span style="width: 56px; height: 56px; flex: none; border-radius: 50%; background: var(--mb-success-bg); color: var(--mb-success); display: grid; place-items: center"><svg class="mb-icon" viewBox="0 0 24 24" style="width: 30px; height: 30px" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                    <h1 style="margin: 0">Pagamento confirmado!</h1>
+                    <span style="color: var(--mb-ink-600)" th:text="${'Pedido #' + order.id + ' · ' + total + ' · aprovado pelo Tranquilo Bank'}">Pedido #1042 · R$ 33,83 · aprovado pelo Tranquilo Bank</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap">
+                <span class="mb-badge mb-badge--success">Pago</span>
+                <span th:if="${order.statusEmail != null and order.statusEmail.name() == 'SENT'}" class="mb-badge mb-badge--success">E-mail enviado</span>
+                <span th:if="${order.statusEmail != null and order.statusEmail.name() == 'ERROR'}" class="mb-badge mb-badge--warning">E-mail não enviado</span>
+                <span th:if="${order.statusEmail == null}" class="mb-badge mb-badge--neutral">E-mail a caminho</span>
+            </div>
+            <p th:if="${order.statusEmail == null or order.statusEmail.name() == 'SENT'}" style="margin: 0; color: var(--mb-ink-600)">
+                Enviamos a confirmação para <strong style="color: var(--mb-ink-900)" th:text="${order.customerEmail}">ana.souza@exemplo.com</strong>.
+                Agora é com a gente: seu pedido já está sendo separado.</p>
+            <p th:if="${order.statusEmail != null and order.statusEmail.name() == 'ERROR'}" style="margin: 0; color: var(--mb-ink-600)">
+                O pagamento está confirmado, mas não conseguimos enviar o e-mail para
+                <strong style="color: var(--mb-ink-900)" th:text="${order.customerEmail}">ana.souza@exemplo.com</strong>.
+                A loja pode reenviá-lo; seu pedido já está sendo separado.</p>
+            <div style="display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px; border-radius: var(--mb-radius-sm); background: var(--mb-success-bg)">
+                <span style="color: var(--mb-ink-600)">Código de autorização</span>
+                <strong style="font-variant-numeric: tabular-nums" th:text="${order.authorizationCode}">TB-7F3A9C21</strong>
+            </div>
+            <div style="border-top: 1px solid var(--mb-line); padding-top: 12px; display: flex; flex-direction: column; gap: 8px">
+                <div th:each="it : ${order.items}" class="mb-row">
+                    <span th:text="${it.quantity + ' × ' + it.productName}">1 × Café torrado e moído 500 g</span>
+                    <span style="font-variant-numeric: tabular-nums"
+                          th:text="${'R$ ' + #numbers.formatDecimal(it.unitPrice * it.quantity, 1, 'POINT', 2, 'COMMA')}">R$ 18,71</span>
+                </div>
+                <div class="mb-row mb-row--total"><span>Total pago</span><span th:text="${total}">R$ 33,83</span></div>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap">
+                <a class="mb-btn mb-btn--primary" th:href="@{/products}">Continuar comprando</a>
+            </div>
+        </section>
+
+        <!-- Recusado (pelo banco ou por tempo esgotado, P1) -->
+        <section th:if="${order.status.name() == 'REFUSED'}" class="mb-card"
+                 style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
+            <div style="display: flex; gap: 16px; align-items: center">
+                <span style="width: 56px; height: 56px; flex: none; border-radius: 50%; background: var(--mb-danger-bg); color: var(--mb-danger); display: grid; place-items: center"><svg class="mb-icon" viewBox="0 0 24 24" style="width: 30px; height: 30px" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"></path></svg></span>
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                    <h1 style="margin: 0">Pagamento recusado</h1>
+                    <span style="color: var(--mb-ink-600)"
+                          th:text="${'Pedido #' + order.id + ' · ' + total + (order.refusalReason == 'Tempo esgotado' ? ' · o banco não respondeu a tempo' : ' · recusado pelo Tranquilo Bank')}">Pedido #1043 · R$ 523,88 · recusado pelo Tranquilo Bank</span>
+                </div>
+            </div>
+            <div><span class="mb-badge mb-badge--danger">Recusado</span></div>
+            <div style="display: flex; flex-direction: column; gap: 4px">
+                <span class="mb-label">Motivo</span>
+                <strong th:text="${order.refusalReason}">Valor acima do limite de R$ 500,00</strong>
+            </div>
+            <div class="mb-alert mb-alert--info" role="status">
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01M11 12h1v4h1"></path></svg>
+                <span>Nada foi cobrado e os itens voltaram ao estoque. Em "Tentar de novo" eles voltam para o seu carrinho.</span>
+            </div>
+            <div style="border-top: 1px solid var(--mb-line); padding-top: 12px; display: flex; flex-direction: column; gap: 8px">
+                <div th:each="it : ${order.items}" class="mb-row">
+                    <span th:text="${it.quantity + ' × ' + it.productName}">28 × Café torrado e moído 500 g</span>
+                    <span style="font-variant-numeric: tabular-nums"
+                          th:text="${'R$ ' + #numbers.formatDecimal(it.unitPrice * it.quantity, 1, 'POINT', 2, 'COMMA')}">R$ 523,88</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap">
+                <!-- O botão desabilita no envio para um duplo clique não remontar o carrinho duas vezes -->
+                <form th:action="@{/orders/{id}/retry(id=${order.id})}" method="post" style="display: contents"
+                      onsubmit="this.querySelector('button[type=submit]').disabled = true">
+                    <button class="mb-btn mb-btn--buy" type="submit">Tentar de novo</button>
+                </form>
+                <a class="mb-btn mb-btn--secondary" th:href="@{/products}">Voltar à loja</a>
+            </div>
+        </section>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

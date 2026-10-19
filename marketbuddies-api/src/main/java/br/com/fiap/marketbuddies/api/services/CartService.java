@@ -2,6 +2,7 @@ package br.com.fiap.marketbuddies.api.services;
 
 import br.com.fiap.marketbuddies.api.dtos.CartDto;
 import br.com.fiap.marketbuddies.api.dtos.OrderItemRequestDto;
+import br.com.fiap.marketbuddies.api.dtos.RetryItemDto;
 import br.com.fiap.marketbuddies.api.entities.ProductEntity;
 import br.com.fiap.marketbuddies.api.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -101,6 +102,25 @@ public class CartService {
 
     public void clear() {
         cart.clear();
+    }
+
+    // "Tentar de novo" (D20): troca o carrinho pelos itens do pedido recusado, com as mesmas regras do add
+    // (limita ao estoque de agora). Devolve só os avisos; produto excluído do catálogo vira aviso e fica de fora.
+    @Transactional(readOnly = true)
+    public List<String> refill(List<RetryItemDto> items) {
+        cart.clear();
+        List<String> warnings = new ArrayList<>();
+        for (RetryItemDto item : items) {
+            if (item.productId() == null) {
+                warnings.add(item.productName() + " saiu do catálogo e ficou fora do carrinho.");
+                continue;
+            }
+            Feedback feedback = add(item.productId(), item.quantity());
+            if (!"success".equals(feedback.type())) {
+                warnings.add(feedback.message());
+            }
+        }
+        return warnings;
     }
 
     private Feedback store(ProductEntity product, int wanted, String successMessage) {
