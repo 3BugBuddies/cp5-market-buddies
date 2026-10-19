@@ -45,12 +45,14 @@ public class CartService {
         if (quantity < 1) {
             return remove(productId);
         }
-        return productRepository.findById(productId)
-                .map(product -> store(product, quantity, null))
-                .orElseGet(() -> {
-                    cart.remove(productId);
-                    return Feedback.warning("Esse produto saiu do catálogo e foi retirado do carrinho.");
-                });
+        // Sem Optional.map aqui: store devolve null quando aceita a quantidade, e o map trataria isso
+        // como produto ausente, removendo o item recém-atualizado.
+        ProductEntity product = productRepository.findById(productId).orElse(null);
+        if (product == null) {
+            cart.remove(productId);
+            return Feedback.warning("Esse produto saiu do catálogo e foi retirado do carrinho.");
+        }
+        return store(product, quantity, null);
     }
 
     public Feedback remove(Long productId) {
