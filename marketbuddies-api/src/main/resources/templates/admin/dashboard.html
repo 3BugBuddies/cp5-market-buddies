@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('dashboard')}"></header>
+
+<style>
+    /* Só desta tela: 6 KPIs em 3 colunas (o .mb-kpis do design system usa 4). */
+    .mb-dash { display: flex; flex-direction: column; gap: var(--mb-space-6); }
+    .mb-dash__kpis { display: grid; gap: var(--mb-space-4); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 960px) { .mb-dash__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px) { .mb-dash__kpis { grid-template-columns: 1fr; } }
+    .mb-dash__kpis .mb-kpi__meta { flex-wrap: wrap; }
+    .mb-dash__row { display: flex; flex-wrap: wrap; gap: var(--mb-space-4); }
+    .mb-dash__card { display: flex; flex-direction: column; gap: var(--mb-space-4); min-width: 0; }
+    .mb-dash__card-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--mb-space-2); }
+    .mb-dash__hint { font-size: var(--mb-fs-xs); color: var(--mb-ink-600); }
+    .mb-dash__chart { position: relative; height: 260px; }
+    .mb-dash__legend { display: flex; gap: var(--mb-space-4); font-size: var(--mb-fs-xs); color: var(--mb-ink-600); }
+    .mb-dash__legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .mb-dash__legend i { width: 10px; height: 10px; border-radius: 2px; }
+    .mb-dash__low { max-width: 32ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+
+<main class="mb-page" style="flex: 1" th:with="k=${dashboard.kpis}">
+    <div class="mb-container mb-dash">
+        <div class="mb-page-header" style="margin: 0">
+            <div>
+                <h1>Dashboard</h1>
+                <span class="mb-page-header__sub"
+                      th:text="|Hoje, ${#temporals.format(dashboard.today, 'dd/MM/yyyy')} · vendas confirmadas pelo Tranquilo Bank|">
+                    Hoje, 18/10/2026 · vendas confirmadas pelo Tranquilo Bank</span>
+            </div>
+            <a class="mb-btn mb-btn--primary" th:href="@{/admin/products}">Gerenciar produtos</a>
+        </div>
+
+        <!-- KPIs -->
+        <div class="mb-dash__kpis">
+            <div class="mb-kpi">
+                <span class="mb-kpi__label">Vendas hoje</span>
+                <span class="mb-kpi__value" th:text="|R$ ${#numbers.formatDecimal(k.salesToday, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</span>
+                <span class="mb-kpi__meta" th:if="${k.salesVsYesterdayPct != null}">
+                    <span class="mb-badge" th:classappend="${k.salesVsYesterdayPct >= 0} ? 'mb-badge--success' : 'mb-badge--danger'"
+                          th:text="${k.salesVsYesterdayPct >= 0 ? '+' + k.salesVsYesterdayPct + '%' : '−' + (-k.salesVsYesterdayPct) + '%'}">+0%</span>vs ontem
+                </span>
+                <span class="mb-kpi__meta" th:unless="${k.salesVsYesterdayPct != null}">sem vendas ontem para comparar</span>
+            </div>
+
+            <div class="mb-kpi">
+                <span class="mb-kpi__label">Pedidos pagos hoje</span>
+                <span class="mb-kpi__value" th:text="${k.paidToday}">0</span>
+                <span class="mb-kpi__meta">
+                    <span class="mb-badge" th:classappend="${k.refusedToday > 0} ? 'mb-badge--danger' : 'mb-badge--neutral'"
+                          th:text="${k.refusedToday == 1 ? '1 recusado' : k.refusedToday + ' recusados'}">0 recusados</span>
+                    <span th:text="${k.awaitingToday + ' aguardando'}">0 aguardando</span>
+                </span>
+            </div>
+
+            <div class="mb-kpi">
+                <span class="mb-kpi__label">Ticket médio</span>
+                <span class="mb-kpi__value" th:text="|R$ ${#numbers.formatDecimal(k.averageTicket, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</span>
+                <span class="mb-kpi__meta" th:if="${k.ticketVsYesterdayPct != null}">
+                    <span class="mb-badge" th:classappend="${k.ticketVsYesterdayPct >= 0} ? 'mb-badge--success' : 'mb-badge--danger'"
+                          th:text="${k.ticketVsYesterdayPct >= 0 ? '+' + k.ticketVsYesterdayPct + '%' : '−' + (-k.ticketVsYesterdayPct) + '%'}">+0%</span>vs ontem
+                </span>
+                <span class="mb-kpi__meta" th:unless="${k.ticketVsYesterdayPct != null}">vendas de hoje ÷ pedidos pagos</span>
+            </div>
+
+            <div class="mb-kpi">
+                <span class="mb-kpi__label">Lucro hoje</span>
+                <span class="mb-kpi__value" th:text="|R$ ${#numbers.formatDecimal(k.profitToday, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</span>
+                <span class="mb-kpi__meta">
+                    <span class="mb-badge" th:classappend="${k.profitMarginPct != null} ? 'mb-badge--success' : 'mb-badge--neutral'"
+                          th:text="${k.profitMarginPct != null ? #numbers.formatDecimal(k.profitMarginPct, 1, 'POINT', 1, 'COMMA') + '%' : '—'}">0%</span>das vendas
+                </span>
+            </div>
+
+            <div class="mb-kpi">
+                <span class="mb-kpi__label">Markup médio</span>
+                <span class="mb-kpi__value" th:text="${k.averageMarkupPct != null ? k.averageMarkupPct + '%' : '—'}">0%</span>
+                <span class="mb-kpi__meta">
+                    <span class="mb-badge mb-badge--neutral" th:text="${k.productCount == 1 ? '1 produto' : k.productCount + ' produtos'}">0 produtos</span>no catálogo
+                </span>
+            </div>
+
+            <div class="mb-kpi">
+                <span class="mb-kpi__label">Estoque baixo</span>
+                <span class="mb-kpi__value" th:text="${k.lowStockCount == 1 ? '1 produto' : k.lowStockCount + ' produtos'}">0 produtos</span>
+                <span class="mb-kpi__meta">
+                    <span class="mb-badge" th:classappend="${k.outOfStockCount > 0} ? 'mb-badge--danger' : 'mb-badge--neutral'"
+                          th:text="${k.outOfStockCount == 1 ? '1 esgotado' : k.outOfStockCount + ' esgotados'}">0 esgotados</span>
+                    <span class="mb-dash__low" th:text="${k.lowStockCount > 0 ? k.lowStockNames : '5 unidades ou menos'}"
+                          th:title="${k.lowStockNames}">5 unidades ou menos</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Gráficos de vendas -->
+        <div class="mb-dash__row">
+            <section class="mb-card mb-dash__card" style="flex: 2 1 560px">
+                <div class="mb-dash__card-head">
+                    <div>
+                        <h2 class="mb-card__title" style="margin: 0">Vendas e lucro por dia</h2>
+                        <span class="mb-dash__hint">últimos 7 dias · só pedidos pagos</span>
+                    </div>
+                    <div class="mb-dash__legend">
+                        <span><i style="background: var(--mb-blue-700)"></i>Vendas</span>
+                        <span><i style="background: var(--mb-red-600)"></i>Lucro</span>
+                    </div>
+                </div>
+                <div class="mb-dash__chart"><canvas id="chart-days" aria-label="Vendas e lucro dos últimos 7 dias" role="img"></canvas></div>
+            </section>
+
+            <section class="mb-card mb-dash__card" style="flex: 1 1 320px">
+                <div class="mb-dash__card-head">
+                    <h2 class="mb-card__title" style="margin: 0">Vendas da semana por categoria</h2>
+                </div>
+                <div class="mb-dash__chart"><canvas id="chart-categories" aria-label="Vendas da semana por categoria" role="img"></canvas></div>
+            </section>
+        </div>
+
+        <!-- Estoque -->
+        <section class="mb-card mb-dash__card">
+            <div class="mb-dash__card-head">
+                <h2 class="mb-card__title" style="margin: 0">Estoque por produto</h2>
+                <span class="mb-dash__hint">Em vermelho: 5 unidades ou menos</span>
+            </div>
+            <div class="mb-dash__chart" th:style="|height: ${dashboard.stock.size() * 30 + 40}px|">
+                <canvas id="chart-stock" aria-label="Estoque por produto" role="img"></canvas>
+            </div>
+        </section>
+
+        <!-- Últimas compras -->
+        <section style="display: flex; flex-direction: column; gap: var(--mb-space-3)">
+            <h2 style="margin: 0">Últimas compras</h2>
+            <div class="mb-table-wrap">
+                <table class="mb-table">
+                    <thead>
+                    <tr>
+                        <th>Pedido</th>
+                        <th>Cliente</th>
+                        <th>Data</th>
+                        <th class="mb-num">Total</th>
+                        <th class="mb-num">Lucro</th>
+                        <th>Pagamento</th>
+                        <th>E-mail</th>
+                        <th aria-label="Ações"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${dashboard.recentOrders.isEmpty()}">
+                        <td colspan="8" style="text-align: center; color: var(--mb-ink-500)">Nenhuma compra ainda.</td>
+                    </tr>
+                    <tr th:each="o : ${dashboard.recentOrders}">
+                        <td style="font-weight: 500" th:text="|#${o.id}|">#1</td>
+                        <td th:text="${o.customerName}">Ana Souza</td>
+                        <td th:text="${#temporals.format(o.createdAt, 'dd/MM HH:mm')}">18/10 20:52</td>
+                        <td class="mb-num" th:text="|R$ ${#numbers.formatDecimal(o.total, 1, 'POINT', 2, 'COMMA')}|">R$ 0,00</td>
+                        <td class="mb-num" th:text="${o.profit != null ? 'R$ ' + #numbers.formatDecimal(o.profit, 1, 'POINT', 2, 'COMMA') : '—'}">—</td>
+                        <td th:switch="${o.status.name()}">
+                            <span th:case="'APPROVED'" class="mb-badge mb-badge--success">Pago</span>
+                            <span th:case="'REFUSED'" class="mb-badge mb-badge--danger">Recusado</span>
+                            <span th:case="*" class="mb-badge mb-badge--warning">Aguardando banco</span>
+                        </td>
+                        <td th:switch="${o.emailStatus != null ? o.emailStatus.name() : ''}">
+                            <span th:case="'SENT'" class="mb-badge mb-badge--success">Enviado</span>
+                            <span th:case="'ERROR'" class="mb-badge mb-badge--danger">Falhou</span>
+                            <!-- Sem linha em TB_EMAILS para o pedido -->
+                            <span th:case="*" style="color: var(--mb-ink-500)">—</span>
+                        </td>
+                        <td>
+                            <!-- T7: "Reenviar e-mail" (P5) vira um form POST /admin/orders/{id}/resend-email
+                                 quando o EmailService existir. Por ora o botão fica desabilitado. -->
+                            <button th:if="${o.canResendEmail}" type="button" class="mb-btn mb-btn--secondary mb-btn--sm"
+                                    disabled title="Disponível quando o envio de e-mail entrar (T7)">Reenviar e-mail</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+
+<script th:inline="javascript">
+    window.MB_DASHBOARD = /*[[${dashboard.charts()}]]*/ {};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+        integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>
