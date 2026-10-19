@@ -12,13 +12,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /** Ordem explícita: sem ela o Jackson 3 põe os componentes do record na ordem do construtor. */
-@JsonPropertyOrder({"authorizationCode", "createdAt", "customerEmail", "id", "items", "origin", "refusalReason",
-        "respondedAt", "status", "statusEmail", "totalAmount"})
+@JsonPropertyOrder({"authorizationCode", "createdAt", "customerEmail", "customerName", "id", "items", "origin",
+        "refusalReason", "respondedAt", "status", "statusEmail", "totalAmount"})
 public record OrderDto(
         Long id,
         OrderStatus status,
         BigDecimal totalAmount,
         String customerEmail,
+        String customerName,
         OrderOrigin origin,
         LocalDateTime createdAt,
         LocalDateTime respondedAt,
@@ -37,6 +38,7 @@ public record OrderDto(
                 order.getStatus(),
                 order.getTotalAmount(),
                 order.getCustomer().getEmail(),
+                order.getCustomer().getFullName(),
                 order.getOrigin(),
                 order.getCreatedAt(),
                 order.getRespondedAt(),

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Meus pedidos')}"></head>
+<body class="mb-root" style="min-height: 100vh; display: flex; flex-direction: column">
+<header th:replace="~{fragments/layout :: navbar('pedidos')}"></header>
+<main class="mb-page" style="flex: 1">
+    <div class="mb-container mb-stack">
+        <div class="mb-page-header" style="margin: 0">
+            <div>
+                <h1>Meus pedidos</h1>
+                <span class="mb-page-header__sub">Seus 50 pedidos mais recentes e a resposta do Tranquilo Bank</span>
+            </div>
+            <a class="mb-btn mb-btn--secondary" th:href="@{/products}">Continuar comprando</a>
+        </div>
+
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <section th:if="${orders.isEmpty()}" class="mb-card mb-empty">
+            <span class="mb-empty__art">
+                <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><rect x="9" y="3" width="6" height="4" rx="1"></rect><path d="M9 12h6M9 16h4"></path></svg>
+            </span>
+            <h2 class="mb-empty__title">Você ainda não fez pedidos</h2>
+            <p>Escolha seus produtos no catálogo; cada compra aparece aqui com o status do pagamento.</p>
+            <a class="mb-btn mb-btn--primary" th:href="@{/products}">Ver produtos</a>
+        </section>
+
+        <div th:unless="${orders.isEmpty()}" class="mb-table-wrap mb-orders">
+            <table class="mb-table">
+                <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Data</th>
+                    <th class="mb-num">Itens</th>
+                    <th class="mb-num">Total</th>
+                    <th>Pagamento</th>
+                    <th>E-mail</th>
+                    <th><span class="mb-sr-only">Detalhe</span></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="o : ${orders}" th:with="units=${#aggregates.sum(o.items.![quantity])}">
+                    <td class="mb-orders__id">
+                        <a th:href="@{/orders/{id}(id=${o.id})}" th:text="|Pedido #${o.id}|">Pedido #1042</a>
+                    </td>
+                    <td data-label="Data" th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}">18/10/2026 20:52</td>
+                    <td data-label="Itens" class="mb-num" th:text="${units == 1 ? '1 item' : units + ' itens'}">3 itens</td>
+                    <td data-label="Total" class="mb-num" style="font-weight: 500"
+                        th:text="|R$ ${#numbers.formatDecimal(o.totalAmount, 1, 'POINT', 2, 'COMMA')}|">R$ 33,83</td>
+                    <td data-label="Pagamento"><span th:replace="~{fragments/order-status :: payment(${o})}"></span></td>
+                    <td data-label="E-mail"><span th:replace="~{fragments/order-status :: email(${o})}"></span></td>
+                    <td class="mb-orders__go">
+                        <a class="mb-link-arrow" th:href="@{/orders/{id}(id=${o.id})}"
+                           th:aria-label="|Ver pedido #${o.id}|">Ver
+                            <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<span th:fragment="payment(o)" class="mb-order-status" th:switch="${o.status.name()}">
+    <span th:case="'APPROVED'" class="mb-badge mb-badge--success">Aprovado</span>
+    <th:block th:case="'REFUSED'">
+        <span class="mb-badge mb-badge--danger">Recusado</span>
+        <span class="mb-order-status__reason" th:if="${o.refusalReason != null}" th:text="${o.refusalReason}">Valor acima do limite</span>
+    </th:block>
+    <span th:case="*" class="mb-badge mb-badge--warning">Aguardando</span>
+</span>
+
+<span th:fragment="email(o)" th:switch="${o.status.name() == 'APPROVED' ? (o.statusEmail != null ? o.statusEmail.name() : 'PENDING') : ''}">
+    <span th:case="'SENT'" class="mb-badge mb-badge--success">Enviado</span>
+    <span th:case="'ERROR'" class="mb-badge mb-badge--warning">Não enviado</span>
+    <span th:case="'PENDING'" class="mb-badge mb-badge--neutral">Enviando</span>
+    <span th:case="*" class="mb-muted">—</span>
+</span>
+
+</body>
+</html>

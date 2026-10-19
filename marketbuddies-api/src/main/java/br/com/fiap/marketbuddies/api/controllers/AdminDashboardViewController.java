@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -27,7 +28,8 @@ public class AdminDashboardViewController {
     }
 
     @PostMapping("/admin/orders/{id}/resend-email")
-    public String resendEmail(@PathVariable Long id, RedirectAttributes redirect) {
+    public String resendEmail(@PathVariable Long id, @RequestParam(required = false) String back,
+                              RedirectAttributes redirect) {
         try {
             StatusEmail status = paymentFacade.resendEmail(id);
             if (status == StatusEmail.SENT) {
@@ -39,6 +41,6 @@ public class AdminDashboardViewController {
         } catch (BusinessException | NotFoundException ex) {
             redirect.addFlashAttribute("error", ex.getMessage());
         }
-        return "redirect:/admin/dashboard";
+        return "orders".equals(back) ? "redirect:/admin/orders" : "redirect:/admin/dashboard";
     }
 }

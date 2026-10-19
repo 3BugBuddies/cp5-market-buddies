@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/orders/{id}")
+@RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderViewController {
 
@@ -29,13 +29,19 @@ public class OrderViewController {
     private final CartService cartService;
 
     @GetMapping
+    public String orders(@AuthenticationPrincipal AuthUser user, Model model) {
+        model.addAttribute("orders", orderService.listOrders(user.getId(), false));
+        return "orders/list";
+    }
+
+    @GetMapping("/{id}")
     public String order(@PathVariable Long id, @AuthenticationPrincipal AuthUser user, Model model) {
         OrderDto order = orderService.getOrder(id, user.getId(), false);
         model.addAttribute("order", order);
         return "orders/order";
     }
 
-    @GetMapping("/status")
+    @GetMapping("/{id}/status")
     @ResponseBody
     public Map<String, Object> status(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
         OrderDto order = orderService.getOrder(id, user.getId(), false);
@@ -45,7 +51,7 @@ public class OrderViewController {
         return body;
     }
 
-    @PostMapping("/retry")
+    @PostMapping("/{id}/retry")
     public String retry(@PathVariable Long id, @AuthenticationPrincipal AuthUser user, RedirectAttributes redirect) {
         List<RetryItemDto> items = orderService.retryItems(id, user.getId());
         List<String> warnings = cartService.refill(items);
