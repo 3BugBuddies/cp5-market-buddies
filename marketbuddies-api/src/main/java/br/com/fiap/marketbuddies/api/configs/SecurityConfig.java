@@ -20,6 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.web.util.UriUtils;
@@ -51,9 +52,12 @@ public class SecurityConfig {
         http
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Telas: token no cookie XSRF-TOKEN e no campo _csrf que o Thymeleaf põe nos forms.
-                // API: autenticada por Bearer, que o navegador não envia sozinho
+                // API: autenticada por Bearer, que o navegador não envia sozinho.
+                // A estratégia nula evita que o Spring trate cada requisição autenticada pelo cookie
+                // (até o GET do CSS) como "login novo" e troque o token CSRF: o form já aberto daria 403
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .sessionAuthenticationStrategy(new NullAuthenticatedSessionStrategy())
                         .ignoringRequestMatchers("/api/**"))
                 // POST /logout é do AuthViewController (apaga o cookie); o filtro padrão o interceptaria
                 .logout(AbstractHttpConfigurer::disable)

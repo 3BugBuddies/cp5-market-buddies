@@ -40,7 +40,8 @@ public class JwtUtil {
                 .claim("role", role)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMs))
-                .signWith(signingKey)
+                // Fixo em HS256: sem o algoritmo, a jjwt escolhe pelo tamanho da chave (HS384 para 48+ bytes)
+                .signWith(signingKey, Jwts.SIG.HS256)
                 .compact();
     }
 
