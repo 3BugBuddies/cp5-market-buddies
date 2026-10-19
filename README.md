@@ -48,53 +48,36 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 
 ## Configuração do Projeto — Spring Initializr
 
-Spring Boot 4.1.1, Java 21, Maven, configuração em YAML. Cada serviço foi gerado separadamente no Initializr.
+Spring Boot 4.1.1, Java 21, Maven, configuração em YAML. Cada serviço foi gerado separadamente no Initializr (clique na imagem para ver em tamanho real).
 
-### MarketBuddies API
+<table>
+  <tr>
+    <th>MarketBuddies API</th>
+    <th>MarketBuddies Worker</th>
+    <th>Tranquilo Bank</th>
+  </tr>
+  <tr>
+    <td><a href="assets/spring-initializr-marketbuddies-api.png"><img src="assets/spring-initializr-marketbuddies-api.png" alt="Spring Initializr — MarketBuddies API" width="280"></a></td>
+    <td><a href="assets/spring-initializr-marketbuddies-worker.png"><img src="assets/spring-initializr-marketbuddies-worker.png" alt="Spring Initializr — MarketBuddies Worker" width="280"></a></td>
+    <td><a href="assets/spring-initializr-tranquilo-bank.png"><img src="assets/spring-initializr-tranquilo-bank.png" alt="Spring Initializr — Tranquilo Bank" width="280"></a></td>
+  </tr>
+</table>
 
-![Spring Initializr — MarketBuddies API](assets/spring-initializr-marketbuddies-api.png)
+| Dependência | API | Worker | Bank | Para quê |
+|-------------|:---:|:------:|:----:|----------|
+| Spring Web | ✓ | | ✓ | Controllers e API REST |
+| Spring Security | ✓ | | | Autenticação e autorização por perfil |
+| Thymeleaf | ✓ | | | Telas renderizadas no servidor |
+| Spring Data JPA | ✓ | | | Persistência com Hibernate |
+| PostgreSQL Driver | ✓ | | | Driver JDBC |
+| Validation | ✓ | | ✓ | Bean Validation em formulários e corpos JSON |
+| Spring for RabbitMQ | ✓ | ✓ | | Filas do pagamento |
+| Java Mail Sender | ✓ | | | E-mail de confirmação |
+| HTTP Client | | ✓ | | Chamada ao Tranquilo Bank |
+| Lombok | ✓ | ✓ | ✓ | Menos boilerplate |
+| Spring Boot DevTools | ✓ | ✓ | ✓ | Reinício automático em desenvolvimento |
 
-| Dependência | Categoria | Descrição |
-|-------------|-----------|-----------|
-| Spring Web | WEB | Camada MVC (controllers, dispatcher servlet) |
-| Spring Security | SECURITY | Autenticação, perfis e autorização por rota |
-| Thymeleaf | TEMPLATE ENGINES | Telas renderizadas no servidor |
-| Spring Data JPA | SQL | Persistência com JPA e Hibernate |
-| PostgreSQL Driver | SQL | Driver JDBC do PostgreSQL |
-| Validation | I/O | Bean Validation nos formulários e nos corpos da API |
-| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
-| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
-| Spring for RabbitMQ | MESSAGING | Envio do pedido de pagamento e leitura das respostas |
-| Java Mail Sender | I/O | E-mail de confirmação de pagamento |
-
-Dependências que entram no `pom.xml` fora do Initializr:
-
-| Dependência | Para quê |
-|-------------|----------|
-| `thymeleaf-extras-springsecurity6` | O Initializr inclui sozinho quando Security e Thymeleaf estão marcados; mostra ou esconde elementos por perfil (`sec:authorize`) |
-| `jjwt` (0.12.x) | Gera e valida o token JWT. Entra com a tarefa de segurança (T4). A demo da Aula 13 usa a 0.11.5, cuja API está descontinuada |
-
-### MarketBuddies Worker
-
-![Spring Initializr — MarketBuddies Worker](assets/spring-initializr-marketbuddies-worker.png)
-
-| Dependência | Categoria | Descrição |
-|-------------|-----------|-----------|
-| Spring for RabbitMQ | MESSAGING | Consome os pedidos e publica as respostas |
-| HTTP Client | WEB | `RestClient` para chamar o Tranquilo Bank, sem subir servidor web |
-| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
-| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
-
-### Tranquilo Bank
-
-![Spring Initializr — Tranquilo Bank](assets/spring-initializr-tranquilo-bank.png)
-
-| Dependência | Categoria | Descrição |
-|-------------|-----------|-----------|
-| Spring Web | WEB | API REST de pagamentos |
-| Validation | I/O | Validação da requisição de autorização |
-| Lombok | DEVELOPER TOOLS | Redução de boilerplate |
-| Spring Boot DevTools | DEVELOPER TOOLS | Reinício automático em desenvolvimento |
+Fora do Initializr, a API usa ainda `thymeleaf-extras-springsecurity6` (mostra ou esconde elementos por perfil) e `jjwt` (gera e valida o token JWT).
 
 ---
 
