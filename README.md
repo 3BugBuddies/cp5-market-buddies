@@ -38,7 +38,7 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 | Login | https://marketbuddies-api-production.up.railway.app/login |
 | Tranquilo Bank (API de pagamentos) | https://tranquilo-bank-production.up.railway.app |
 | Painel do RabbitMQ | https://rabbitmq-production-e3dc.up.railway.app |
-| Vídeo | _a preencher_ |
+| Vídeo | https://youtu.be/Nd90oGEn78A |
 
 > O deploy roda no plano de teste do Railway, que tem **crédito limitado**. Previsão de ficar no ar até **01/11/2026** (consumo medido: ~886 MB de RAM somados nos 5 serviços, ~US$ 0,32/dia). Depois disso, a aplicação pode ficar indisponível; o vídeo e os prints deste README mostram o fluxo completo.
 
@@ -298,16 +298,9 @@ O envio acontece depois que o status do pedido foi gravado, para não segurar co
 
 **Assunto:** `MarketBuddies · Pagamento confirmado do pedido #42`. **Corpo:** HTML montado pelo template Thymeleaf `templates/email/order-confirmation.html` (com alternativa em texto puro), com nome do cliente, itens com quantidade e preço, total, código de autorização e "Obrigado por comprar no MarketBuddies!".
 
-> **E-mail no deploy:** o plano Trial do Railway bloqueia SMTP de saída ("SMTP is only available on the Pro plan and above", [documentação](https://docs.railway.com/reference/outbound-networking)). Por isso, no deploy o envio fica registrado como `ERROR` (timeout na porta 587), e o resto do fluxo funciona normalmente. Rodando local, o e-mail chega, como mostra o vídeo. O ADMIN pode usar "Reenviar e-mail" no dashboard.
+> **E-mail no deploy:** o plano Trial do Railway bloqueia SMTP de saída ("SMTP is only available on the Pro plan and above", [documentação](https://docs.railway.com/reference/outbound-networking)). Por isso, no deploy o envio fica registrado como `ERROR` (timeout na porta 587), e o resto do fluxo funciona normalmente. Rodando local, o e-mail chega, como mostra o [vídeo](https://youtu.be/Nd90oGEn78A). O ADMIN pode usar "Reenviar e-mail" no dashboard.
 
-<!-- print pendente: descomentar quando os prints existirem
-<table>
-  <tr>
-    <td align="center" valign="top"><a href="assets/email-confirmacao.png"><img src="assets/email-confirmacao.png" alt="E-mail recebido no Gmail" width="420"></a><br><sub>E-mail recebido no Gmail</sub></td>
-    <td align="center" valign="top"><a href="assets/banco-emails.png"><img src="assets/banco-emails.png" alt="TB_EMAILS com SENT e ERROR" width="420"></a><br><sub>TB_EMAILS com SENT e ERROR</sub></td>
-  </tr>
-</table>
--->
+<a href="assets/email-confirmacao.png"><img src="assets/email-confirmacao.png" alt="E-mail de confirmação recebido no Gmail" width="640"></a>
 
 ---
 
