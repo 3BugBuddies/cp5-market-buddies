@@ -15,11 +15,11 @@ https://github.com/3BugBuddies/cp5-market-buddies
 
 
 DEPLOY (Railway):
-[link do deploy]
+https://marketbuddies-api-production.up.railway.app (Railway)
 
 
 VÍDEO:
-[link do vídeo]
+enviado em seguida, também no README
 
 
 IDE UTILIZADA:
