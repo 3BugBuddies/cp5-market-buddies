@@ -50,7 +50,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, JsonMapper jsonMapper) throws Exception {
         http
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(sm -> sm
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionFixation(fixation -> fixation.none()))
                 // Telas: token no cookie XSRF-TOKEN e no campo _csrf que o Thymeleaf põe nos forms.
                 // API: autenticada por Bearer, que o navegador não envia sozinho.
                 // A estratégia nula evita que o Spring trate cada requisição autenticada pelo cookie
