@@ -355,11 +355,22 @@ A coleção está em [`postman/marketbuddies.postman_collection.json`](postman/m
 |----------|--------------|-----|
 | `{{api}}` | `https://marketbuddies-api-production.up.railway.app` | URL da API (local: `http://localhost:8080`) |
 | `{{bank}}` | `https://tranquilo-bank-production.up.railway.app` | URL do Tranquilo Bank (local: `http://localhost:8090`) |
-| `{{clientEmail}}` / `{{clientPassword}}` | `cliente@marketbuddies.com` / `cliente123` | Login do cliente de teste |
-| `{{adminEmail}}` / `{{adminPassword}}` | vazias | Preencher com o ADMIN do `.txt` da entrega |
-| `{{token}}` / `{{adminToken}}` / `{{orderId}}` | vazias | Preenchidas pelos scripts de teste |
+| `{{adminPassword}}` | vazia | Senha do ADMIN: copie do quadro "Contas de teste" da tela de login |
+| `{{token}}` / `{{adminToken}}` / `{{orderId}}` / `{{productId}}` | vazias | Preenchidas pelos scripts de teste |
 
-3. Rode **1. Autenticação → Login (cliente)** primeiro.
+O login do cliente já vai com a conta de exemplo (`cliente@marketbuddies.com` / `cliente123`), e o do ADMIN com o e-mail `3bugbuddies@gmail.com`.
+
+3. Rode a coleção na ordem, ou pelo **Collection Runner**: a pasta **1. Autenticação** grava os tokens usados no resto.
+
+### Endpoints da API
+
+| Pasta | Requests |
+|-------|----------|
+| 1. Autenticação | `POST /api/auth/signup` (cadastro, 201) · cadastro com e-mail repetido (409) · `POST /api/auth/login` cliente e ADMIN (200) · login inválido (401) · `GET /api/auth/me` |
+| 2. Produtos | `GET /api/products` · `GET /api/products/{id}` · `POST /api/products` (ADMIN, 201, preço calculado) · criar como cliente (403) · criar inválido (400) · `PUT /api/products/{id}` · `DELETE /api/products/{id}` (204) · detalhe do excluído (404) |
+| 3. Compras | `POST /api/orders` aprovada e recusada (202) · `GET /api/orders/{id}` · `GET /api/orders` (meus pedidos; ADMIN vê todos) · sem estoque (409) · sem token (401) · corpo inválido (400) |
+| 4. E-mails | `GET /api/emails` (ADMIN) |
+| 5. Tranquilo Bank | `POST /api/payments/authorize` aprovado, recusado e inválido |
 
 ### Fluxo do login
 
