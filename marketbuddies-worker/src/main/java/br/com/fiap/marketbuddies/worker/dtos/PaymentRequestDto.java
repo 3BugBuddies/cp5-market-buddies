@@ -1,21 +1,16 @@
 package br.com.fiap.marketbuddies.worker.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class PaymentRequestDto {
-    private Long orderId;
-    private String customerEmail;
-    private String customerName;
-    private BigDecimal totalAmount;
-    private List<PaymentItemDto> items;
-    private LocalDateTime requestedAt;
+// Mesmos campos, na mesma ordem, do PaymentRequestDto que a api publica. O worker lê a mensagem
+// pelo tipo do parâmetro do @RabbitListener; o __TypeId__ com o pacote da api não é usado.
+public record PaymentRequestDto(
+        Long orderId,
+        String customerEmail,
+        String customerName,
+        BigDecimal totalAmount,
+        List<PaymentItemDto> items,
+        LocalDateTime requestedAt) {
 }
