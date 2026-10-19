@@ -38,6 +38,12 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
     @EntityGraph(attributePaths = {"customer", "items", "items.product"})
     Optional<OrderEntity> findDetailedById(Long id);
 
+    @EntityGraph(attributePaths = {"customer", "items"})
+    List<OrderEntity> findTop50ByOrderByCreatedAtDescIdDesc();
+
+    @EntityGraph(attributePaths = {"customer", "items"})
+    List<OrderEntity> findTop50ByCustomer_IdOrderByCreatedAtDescIdDesc(Long customerId);
+
     interface StatusCount {
         OrderStatus getStatus();
 

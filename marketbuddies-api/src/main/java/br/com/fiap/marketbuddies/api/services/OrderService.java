@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -163,6 +164,20 @@ public class OrderService {
             throw new BusinessException("Só um pedido recusado pode ser refeito");
         }
         return order.getItems().stream().map(RetryItemDto::from).toList();
+    }
+
+    /** Os 50 pedidos mais recentes: os do próprio cliente ou, para o ADMIN, de todos. */
+    @Transactional(readOnly = true)
+    public List<OrderDto> listOrders(Long userId, boolean admin) {
+        List<OrderEntity> orders = admin
+                ? orderRepository.findTop50ByOrderByCreatedAtDescIdDesc()
+                : orderRepository.findTop50ByCustomer_IdOrderByCreatedAtDescIdDesc(userId);
+        Map<Long, StatusEmail> emailStatus = new HashMap<>();
+        if (!orders.isEmpty()) {
+            emailRepository.findLatestStatusByOrder(orders.stream().map(OrderEntity::getId).toList())
+                    .forEach(row -> emailStatus.put(row.getOrderId(), row.getStatusEmail()));
+        }
+        return orders.stream().map(o -> OrderDto.from(o, emailStatus.get(o.getId()))).toList();
     }
 
     private void logIgnored(Long orderId, String what) {

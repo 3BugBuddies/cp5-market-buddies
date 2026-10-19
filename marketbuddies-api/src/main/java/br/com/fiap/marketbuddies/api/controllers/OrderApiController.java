@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -36,9 +37,17 @@ public class OrderApiController {
                 .body(order);
     }
 
+    @GetMapping
+    public List<OrderDto> list(@AuthenticationPrincipal AuthUser user) {
+        return orderService.listOrders(user.getId(), isAdmin(user));
+    }
+
     @GetMapping("/{id}")
     public OrderDto get(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
-        boolean admin = user.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
-        return orderService.getOrder(id, user.getId(), admin);
+        return orderService.getOrder(id, user.getId(), isAdmin(user));
+    }
+
+    private static boolean isAdmin(AuthUser user) {
+        return user.getAuthorities().stream().anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }

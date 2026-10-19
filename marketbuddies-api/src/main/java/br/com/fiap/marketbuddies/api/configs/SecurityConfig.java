@@ -52,8 +52,9 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/api/**"))
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/signup").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+                        .requestMatchers("/api/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/orders").hasRole("CUSTOMER")
                         .requestMatchers("/api/orders/**").authenticated()
                         .requestMatchers("/api/emails/**").hasRole("ADMIN")
