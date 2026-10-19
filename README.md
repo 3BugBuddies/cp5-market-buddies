@@ -540,9 +540,14 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 Painel no Railway: https://rabbitmq-production-e3dc.up.railway.app (usuário e senha no `.txt` da entrega). Local: http://localhost:15672.
 
 - **Exchanges** — as três `direct`.
-  <!-- print pendente: assets/rabbitmq-exchanges.png -->
-- **Filas** — as três filas com mensagens trafegadas depois de uma compra.
-  <!-- print pendente: assets/rabbitmq-filas.png -->
+
+  ![Exchanges no painel do RabbitMQ](assets/rabbitmq-exchanges.png)
+- **Conexões** — a api e o worker conectados.
+
+  ![Conexões no painel do RabbitMQ](assets/rabbitmq-conexoes.png)
+- **Filas** — as três filas.
+
+  ![Filas no painel do RabbitMQ](assets/rabbitmq-filas.png)
 - **Mensagem** — "Get messages" mostrando o JSON de um pedido.
   <!-- print pendente: assets/rabbitmq-mensagem.png -->
 
