@@ -1,6 +1,9 @@
 package br.com.fiap.marketbuddies.api.controllers;
 
+import br.com.fiap.marketbuddies.api.configs.AdminProperties;
+import br.com.fiap.marketbuddies.api.configs.DataSeeder;
 import br.com.fiap.marketbuddies.api.dtos.SignUpDto;
+import br.com.fiap.marketbuddies.api.dtos.TestAccountDto;
 import br.com.fiap.marketbuddies.api.exceptions.FieldValidationException;
 import br.com.fiap.marketbuddies.api.security.JwtAuthFilter;
 import br.com.fiap.marketbuddies.api.security.JwtUtil;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 // Login próprio das telas: o POST /login gera o JWT e grava no cookie MB_TOKEN (no lugar do formLogin).
 @Controller
@@ -34,9 +38,15 @@ public class AuthViewController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final UserService userService;
+    private final AdminProperties adminProperties;
 
+    // O quadro "Contas de teste" mostra as duas contas do seed (pedido do Gabriel para a correção).
+    // As credenciais vêm da configuração e do DataSeeder, nunca escritas no template.
     @GetMapping("/login")
-    public String loginForm() {
+    public String loginForm(Model model) {
+        model.addAttribute("testAccounts", List.of(
+                new TestAccountDto("Cliente", DataSeeder.TEST_CUSTOMER_EMAIL, DataSeeder.TEST_CUSTOMER_PASSWORD),
+                new TestAccountDto("ADMIN", adminProperties.email(), adminProperties.password())));
         return "auth/login";
     }
 
