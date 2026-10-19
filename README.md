@@ -405,6 +405,7 @@ Prints do deploy no Railway, na ordem do fluxo de compra e depois da gerência. 
   <tr>
     <td align="center" valign="top"><a href="assets/tela-admin-pedidos.png"><img src="assets/tela-admin-pedidos.png" alt="Pedidos da gerência com filtro" width="280"></a><br><sub>Pedidos da gerência com filtro</sub></td>
     <td align="center" valign="top"><a href="assets/tela-403.png"><img src="assets/tela-403.png" alt="Página 403 para o cliente" width="280"></a><br><sub>Página 403 para o cliente</sub></td>
+    <td align="center" valign="top"><a href="assets/tela-dashboard.png"><img src="assets/tela-dashboard.png" alt="Dashboard da gerência" width="280"></a><br><sub>Dashboard da gerência</sub></td>
     <td align="center" valign="top"><a href="assets/tela-celular.png"><img src="assets/tela-celular.png" alt="Vitrine no celular (390 px)" width="280"></a><br><sub>Vitrine no celular (390 px)</sub></td>
   </tr>
 </table>
@@ -587,34 +588,35 @@ A request de login chama `POST {{api}}/api/auth/login`, e o script de teste dela
 
 ### Prints
 
-<!-- print pendente: descomentar quando os prints existirem
+Executados no Postman contra o deploy. Clique numa imagem para ver em tamanho real. No print de e-mails, o `errorMessage` mostra o timeout do SMTP, que o plano Trial do Railway bloqueia.
+
 <table>
   <tr>
-    <td align="center" valign="top"><a href="assets/postman-login.png"><img src="assets/postman-login.png" alt="Login (cliente)" width="280"></a><br><sub>Login (cliente)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-login-invalido.png"><img src="assets/postman-login-invalido.png" alt="Login inválido (401)" width="280"></a><br><sub>Login inválido (401)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-produtos.png"><img src="assets/postman-produtos.png" alt="Listar produtos" width="280"></a><br><sub>Listar produtos</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-cadastro.png"><img src="assets/postman-cadastro.png" alt="Cadastro de cliente (201)" width="280"></a><br><sub>Cadastro de cliente (201)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-cadastro-duplicado.png"><img src="assets/postman-cadastro-duplicado.png" alt="E-mail duplicado (409)" width="280"></a><br><sub>E-mail duplicado (409)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-login.png"><img src="assets/postman-login.png" alt="Login do cliente (200)" width="280"></a><br><sub>Login do cliente (200)</sub></td>
   </tr>
   <tr>
+    <td align="center" valign="top"><a href="assets/postman-me.png"><img src="assets/postman-me.png" alt="Me (200)" width="280"></a><br><sub>Me (200)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produtos.png"><img src="assets/postman-produtos.png" alt="Listar produtos (200)" width="280"></a><br><sub>Listar produtos (200)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produto-detalhe.png"><img src="assets/postman-produto-detalhe.png" alt="Detalhe do produto (200)" width="280"></a><br><sub>Detalhe do produto (200)</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-produto-invalido.png"><img src="assets/postman-produto-invalido.png" alt="Criar produto inválido (400)" width="280"></a><br><sub>Criar produto inválido (400)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produto-criar.png"><img src="assets/postman-produto-criar.png" alt="Criar produto, ADMIN (201)" width="280"></a><br><sub>Criar produto, ADMIN (201)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produto-criado.png"><img src="assets/postman-produto-criado.png" alt="Detalhe do produto criado (200)" width="280"></a><br><sub>Detalhe do produto criado (200)</sub></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><a href="assets/postman-produto-excluir.png"><img src="assets/postman-produto-excluir.png" alt="Excluir produto, ADMIN (204)" width="280"></a><br><sub>Excluir produto, ADMIN (204)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-produto-excluido.png"><img src="assets/postman-produto-excluido.png" alt="Detalhe do excluído (404)" width="280"></a><br><sub>Detalhe do excluído (404)</sub></td>
     <td align="center" valign="top"><a href="assets/postman-compra-aprovada.png"><img src="assets/postman-compra-aprovada.png" alt="Compra aprovada (202)" width="280"></a><br><sub>Compra aprovada (202)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-pedido-aprovado.png"><img src="assets/postman-pedido-aprovado.png" alt="Pedido aprovado" width="280"></a><br><sub>Pedido aprovado</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-compra-recusada.png"><img src="assets/postman-compra-recusada.png" alt="Compra recusada" width="280"></a><br><sub>Compra recusada</sub></td>
   </tr>
   <tr>
-    <td align="center" valign="top"><a href="assets/postman-sem-estoque.png"><img src="assets/postman-sem-estoque.png" alt="Sem estoque (409)" width="280"></a><br><sub>Sem estoque (409)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-sem-token.png"><img src="assets/postman-sem-token.png" alt="Sem token (401)" width="280"></a><br><sub>Sem token (401)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-corpo-invalido.png"><img src="assets/postman-corpo-invalido.png" alt="Corpo inválido (400)" width="280"></a><br><sub>Corpo inválido (400)</sub></td>
-  </tr>
-  <tr>
-    <td align="center" valign="top"><a href="assets/postman-emails.png"><img src="assets/postman-emails.png" alt="E-mails (ADMIN)" width="280"></a><br><sub>E-mails (ADMIN)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-banco-aprovado.png"><img src="assets/postman-banco-aprovado.png" alt="Banco: aprovado" width="280"></a><br><sub>Banco: aprovado</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-banco-recusado.png"><img src="assets/postman-banco-recusado.png" alt="Banco: recusado" width="280"></a><br><sub>Banco: recusado</sub></td>
-  </tr>
-  <tr>
-    <td align="center" valign="top"><a href="assets/postman-banco-invalido.png"><img src="assets/postman-banco-invalido.png" alt="Banco: inválido (400)" width="280"></a><br><sub>Banco: inválido (400)</sub></td>
-    <td align="center" valign="top"><a href="assets/postman-runner.png"><img src="assets/postman-runner.png" alt="Collection Runner" width="280"></a><br><sub>Collection Runner</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-compra-recusada.png"><img src="assets/postman-compra-recusada.png" alt="Compra acima de R$ 500 (202)" width="280"></a><br><sub>Compra acima de R$ 500 (202)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-meus-pedidos.png"><img src="assets/postman-meus-pedidos.png" alt="Meus pedidos (200)" width="280"></a><br><sub>Meus pedidos (200)</sub></td>
+    <td align="center" valign="top"><a href="assets/postman-emails.png"><img src="assets/postman-emails.png" alt="E-mails enviados, ADMIN (200)" width="280"></a><br><sub>E-mails enviados, ADMIN (200)</sub></td>
   </tr>
 </table>
--->
 
 ---
 
