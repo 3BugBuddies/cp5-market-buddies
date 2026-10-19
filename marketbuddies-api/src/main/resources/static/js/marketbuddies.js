@@ -39,12 +39,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Tela do pedido aguardando o banco: <section data-order-status-url="/orders/42/status">.
-// Consulta o status a cada 2 s e recarrega a página quando o banco responde (APPROVED ou REFUSED).
-// Para de consultar se a resposta não for JSON 200 (ex.: o login expirou e veio a tela de login).
+/** Recarrega a tela do pedido quando o banco responde ou, no aprovado, quando o e-mail tem resultado. */
 function pollOrderStatus(section) {
   const url = section.dataset.orderStatusUrl;
+  const waitEmail = section.dataset.orderWait === 'email';
+  let attempts = 0;
   const timer = setInterval(async () => {
+    if (++attempts > 45) {
+      clearInterval(timer);
+      return;
+    }
     try {
       const response = await fetch(url, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
       const type = response.headers.get('Content-Type') || '';
@@ -53,7 +57,8 @@ function pollOrderStatus(section) {
         return;
       }
       const body = await response.json();
-      if (body.status && body.status !== 'AWAITING_PAYMENT') {
+      const done = waitEmail ? body.statusEmail : body.status && body.status !== 'AWAITING_PAYMENT';
+      if (done) {
         clearInterval(timer);
         window.location.reload();
       }

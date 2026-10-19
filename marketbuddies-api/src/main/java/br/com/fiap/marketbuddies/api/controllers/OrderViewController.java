@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +41,11 @@ public class OrderViewController {
     @GetMapping("/status")
     @ResponseBody
     public Map<String, Object> status(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
-        return Map.of("status", orderService.getOrder(id, user.getId(), false).status());
+        OrderDto order = orderService.getOrder(id, user.getId(), false);
+        Map<String, Object> body = new HashMap<>();
+        body.put("status", order.status());
+        body.put("statusEmail", order.statusEmail());
+        return body;
     }
 
     // "Tentar de novo": remonta o carrinho com os itens do pedido recusado e leva ao checkout.
