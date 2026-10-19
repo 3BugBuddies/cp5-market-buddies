@@ -17,7 +17,7 @@ Mercado express com loja web autenticada (Spring Security + JWT + Thymeleaf + Po
 | Painel do RabbitMQ | https://rabbitmq-production-e3dc.up.railway.app |
 | Vídeo | _a preencher_ |
 
-> O deploy roda no plano de teste do Railway, que tem **crédito limitado**. Os serviços ficam no ar até aproximadamente _a preencher após a medição de consumo_ (data). Depois disso, a aplicação pode ficar indisponível; o vídeo e os prints deste README mostram o fluxo completo.
+> O deploy roda no plano de teste do Railway, que tem **crédito limitado**. Previsão de ficar no ar até **01/11/2026** (consumo medido: ~886 MB de RAM somados nos 5 serviços, ~US$ 0,32/dia). Depois disso, a aplicação pode ficar indisponível; o vídeo e os prints deste README mostram o fluxo completo.
 
 <!-- print pendente: assets/railway-servicos.png -->
 <!-- print pendente: assets/railway-deploy.png -->
