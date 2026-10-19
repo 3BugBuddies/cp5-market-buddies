@@ -1,5 +1,5 @@
 # Infraestrutura local: PostgreSQL + RabbitMQ com painel de gerenciamento.
-# Os dois serviços Java rodam pela IDE.
+# Os três serviços Java rodam pela IDE.
 #   docker compose up -d
 #   Painel do RabbitMQ: http://localhost:15672 (guest / guest)
 
@@ -19,6 +19,10 @@ services:
   rabbitmq:
     image: rabbitmq:4-management
     container_name: marketbuddies-rabbitmq
+    environment:
+      # Na imagem 4.x o painel vem sem coleta de métricas (sem conexões, consumidores
+      # nem gráfico de mensagens). Religada para o vídeo; o Railway usa a mesma variável.
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbitmq_management_agent disable_metrics_collector false"
     ports:
       - "5672:5672"
       - "15672:15672"
