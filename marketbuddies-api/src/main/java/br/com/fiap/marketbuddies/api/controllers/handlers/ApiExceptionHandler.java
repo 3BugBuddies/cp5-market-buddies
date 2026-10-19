@@ -1,8 +1,10 @@
 package br.com.fiap.marketbuddies.api.controllers.handlers;
 
 import br.com.fiap.marketbuddies.api.exceptions.BusinessException;
+import br.com.fiap.marketbuddies.api.exceptions.FieldValidationException;
 import br.com.fiap.marketbuddies.api.exceptions.NotFoundException;
 import br.com.fiap.marketbuddies.api.exceptions.OutOfStockException;
+import br.com.fiap.marketbuddies.api.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
@@ -10,6 +12,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,6 +53,22 @@ public class ApiExceptionHandler {
     @ExceptionHandler(OutOfStockException.class)
     public ResponseEntity<Map<String, Object>> handleOutOfStock(OutOfStockException ex, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request, null);
+    }
+
+    @ExceptionHandler(FieldValidationException.class)
+    public ResponseEntity<Map<String, Object>> handleFieldValidation(FieldValidationException ex,
+                                                                     HttpServletRequest request) {
+        boolean duplicate = UserService.DUPLICATE_EMAIL.equals(ex.getMessage());
+        HttpStatus status = duplicate ? HttpStatus.CONFLICT : HttpStatus.BAD_REQUEST;
+        String message = duplicate ? ex.getMessage() : "Dados inválidos";
+        return build(status, message, request, Map.of(ex.getField(), ex.getMessage()));
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<Map<String, Object>> handleConcurrentUpdate(ObjectOptimisticLockingFailureException ex,
+                                                                      HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "O registro mudou enquanto você editava; consulte de novo e reenvie",
+                request, null);
     }
 
     @ExceptionHandler(BusinessException.class)

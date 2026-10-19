@@ -79,7 +79,7 @@ public class ProductService {
     @Transactional
     public ProductDto update(Long id, ProductFormDto form) {
         ProductEntity product = find(id);
-        if (!Objects.equals(form.version(), product.getVersion())) {
+        if (form.version() != null && !Objects.equals(form.version(), product.getVersion())) {
             throw new ObjectOptimisticLockingFailureException(ProductEntity.class, id);
         }
         apply(form, product);

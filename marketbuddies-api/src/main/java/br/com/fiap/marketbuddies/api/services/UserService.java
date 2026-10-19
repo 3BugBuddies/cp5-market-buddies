@@ -1,14 +1,17 @@
 package br.com.fiap.marketbuddies.api.services;
 
 import br.com.fiap.marketbuddies.api.dtos.SignUpDto;
+import br.com.fiap.marketbuddies.api.dtos.UserDto;
 import br.com.fiap.marketbuddies.api.entities.UserEntity;
 import br.com.fiap.marketbuddies.api.enums.Role;
 import br.com.fiap.marketbuddies.api.exceptions.FieldValidationException;
+import br.com.fiap.marketbuddies.api.exceptions.NotFoundException;
 import br.com.fiap.marketbuddies.api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
@@ -44,5 +47,12 @@ public class UserService {
         } catch (DataIntegrityViolationException e) {
             throw new FieldValidationException("email", DUPLICATE_EMAIL);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public UserDto findProfile(Long id) {
+        return userRepository.findById(id)
+                .map(UserDto::from)
+                .orElseThrow(() -> new NotFoundException("Usuário " + id + " não encontrado"));
     }
 }
