@@ -9,9 +9,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// Carrinho na sessão HTTP: um por navegador, sobrevive ao login (o login por JWT não troca a sessão).
-// Guarda só o id, o nome (para avisar "X saiu do catálogo" depois que o produto é excluído) e a quantidade;
-// preço e estoque são sempre lidos do banco na hora de mostrar e de pagar.
 @Component
 @SessionScope
 public class CartSession implements Serializable {
@@ -45,7 +42,6 @@ public class CartSession implements Serializable {
         return entries.isEmpty();
     }
 
-    // Total de unidades, para o badge da navbar.
     public int count() {
         return entries.values().stream().mapToInt(Entry::quantity).sum();
     }

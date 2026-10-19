@@ -1,10 +1,4 @@
 <!DOCTYPE html>
-<!--/*
-  E-mail de confirmação de pagamento (EmailService.sendConfirmation).
-  Feito para clientes de e-mail: layout em <table>, CSS só inline, largura máxima de 600px,
-  sem JS, sem fonte nem CSS externos. As cores são os tokens --mb-* de static/css/marketbuddies.css.
-  Os valores chegam formatados em pt-BR pelo EmailService.
-*/-->
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -18,14 +12,12 @@
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
                    style="width:100%; max-width:600px; background-color:#ffffff; border:1px solid #dde3ec; border-radius:12px; border-collapse:separate; overflow:hidden; font-family:Arial, Helvetica, sans-serif; color:#1b2333;">
 
-                <!--/* Faixa da marca (--mb-blue-700 com a borda --mb-red-600, como a navbar da loja) */-->
                 <tr>
                     <td style="background-color:#1a4fa0; border-bottom:4px solid #e1251b; padding:20px 24px;">
                         <span style="font-size:22px; line-height:28px; font-weight:bold; color:#ffffff; letter-spacing:-0.3px;">Market<span style="color:#ff8a82;">Buddies</span></span>
                     </td>
                 </tr>
 
-                <!--/* Saudação */-->
                 <tr>
                     <td style="padding:28px 24px 8px 24px;">
                         <p style="margin:0 0 16px 0; font-size:16px; line-height:24px; color:#4a5568;"
@@ -44,7 +36,6 @@
                     </td>
                 </tr>
 
-                <!--/* Itens */-->
                 <tr>
                     <td style="padding:20px 24px 4px 24px;">
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; font-size:14px; line-height:20px;">
@@ -68,7 +59,6 @@
                     </td>
                 </tr>
 
-                <!--/* Dados do pagamento (--mb-blue-50) */-->
                 <tr>
                     <td style="padding:20px 24px 4px 24px;">
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f6fd; border:1px solid #d3e1f7; border-radius:8px; border-collapse:separate;">
@@ -87,7 +77,6 @@
                     </td>
                 </tr>
 
-                <!--/* Botão (--mb-btn--primary) */-->
                 <tr>
                     <td align="center" style="padding:24px 24px 28px 24px;">
                         <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -101,7 +90,6 @@
                     </td>
                 </tr>
 
-                <!--/* Rodapé (--mb-ink-900, como o footer da loja) */-->
                 <tr>
                     <td align="center" style="background-color:#1b2333; padding:18px 24px; font-size:14px; line-height:20px; color:#ffffff;">
                         Obrigado por comprar no MarketBuddies!

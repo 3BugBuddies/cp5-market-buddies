@@ -28,19 +28,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
-// Como o EmailService do professor (RabbitmqSpringEmail): SENT ou ERROR, e o registro em TB_EMAILS
-// é salvo sempre. Diferenças:
-//  - o e-mail é HTML (templates/email/order-confirmation.html) com a alternativa em texto puro na
-//    mesma mensagem; TB_EMAILS.text guarda a versão em texto puro;
-//  - o envio não roda dentro de transação: o SMTP é lento e não deve segurar conexão do banco
-//    (o pedido é lido já com itens e cliente, e o save do registro abre a própria transação);
-//  - a falha vai para errorMessage e nunca é relançada, para a mensagem da fila não voltar.
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    // Tamanho da coluna error_message (EmailEntity).
     private static final int ERROR_MAX = 500;
     private static final Locale PT_BR = Locale.of("pt", "BR");
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm", PT_BR);
@@ -52,6 +44,7 @@ public class EmailService {
     private final StoreMailProperties mailProperties;
     private final TemplateEngine templateEngine;
 
+    /** Grava SENT ou ERROR em TB_EMAILS; a falha nunca é relançada. */
     public StatusEmail sendConfirmation(Long orderId) {
         OrderEntity order = orderRepository.findDetailedById(orderId)
                 .orElseThrow(() -> new NotFoundException("Pedido " + orderId + " não encontrado"));
@@ -86,13 +79,11 @@ public class EmailService {
         return email.getStatusEmail();
     }
 
-    // Controle de envio (GET /api/emails): mais recentes primeiro, até 50, com o destinatário mascarado.
     @Transactional(readOnly = true)
     public List<EmailDto> findRecent() {
         return emailRepository.findTop50ByOrderByIdDesc().stream().map(EmailDto::from).toList();
     }
 
-    // Uma linha da tabela de itens, com os valores já formatados em pt-BR.
     public record EmailItem(String name, Integer quantity, String unitPrice, String subtotal) {
     }
 

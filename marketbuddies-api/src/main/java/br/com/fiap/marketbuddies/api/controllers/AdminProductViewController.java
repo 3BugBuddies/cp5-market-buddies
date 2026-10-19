@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-// Gestão de produtos (ADMIN, regra no SecurityConfig): tabela + modal de criação/edição + modal de exclusão.
-// Erro de validação re-renderiza a tela com o modal aberto (modalOpen) e as mensagens nos campos.
 @Controller
 @RequestMapping("/admin/products")
 @RequiredArgsConstructor
@@ -49,14 +47,12 @@ public class AdminProductViewController {
     @PostMapping("/{id}")
     public String update(@PathVariable Long id, @Valid @ModelAttribute("productForm") ProductFormDto form,
                          BindingResult result, Model model, RedirectAttributes redirect) {
-        // O id da rota é o que vale; o do corpo é ignorado
         if (result.hasErrors()) {
             return page(model, form.withId(id), result);
         }
         try {
             productService.update(id, form);
         } catch (ObjectOptimisticLockingFailureException ex) {
-            // P3: em vez de 500, reabre o modal com os valores atuais do banco e a versão nova
             model.addAttribute("conflict", CONFLICT_MESSAGE);
             return page(model, productService.findForm(id), true);
         }
@@ -71,8 +67,6 @@ public class AdminProductViewController {
         return "redirect:/admin/products";
     }
 
-    // Erro de validação: o form corrigido (id da rota) é outro objeto, então o BindingResult é copiado para
-    // ele; sem isso o model descartaria os erros ao trocar o atributo productForm.
     private String page(Model model, ProductFormDto form, BindingResult result) {
         String page = page(model, form, true);
         BindingResult copy = new BeanPropertyBindingResult(form, "productForm");

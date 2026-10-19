@@ -30,7 +30,6 @@ import org.springframework.web.util.UriUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-// Login próprio das telas: o POST /login gera o JWT e grava no cookie MB_TOKEN (no lugar do formLogin).
 @Controller
 @RequiredArgsConstructor
 public class AuthViewController {
@@ -40,8 +39,6 @@ public class AuthViewController {
     private final UserService userService;
     private final AdminProperties adminProperties;
 
-    // O quadro "Contas de teste" mostra as duas contas do seed (pedido do Gabriel para a correção).
-    // As credenciais vêm da configuração e do DataSeeder, nunca escritas no template.
     @GetMapping("/login")
     public String loginForm(Model model) {
         model.addAttribute("testAccounts", List.of(
@@ -60,7 +57,6 @@ public class AuthViewController {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email.trim(), senha));
         } catch (AuthenticationException ex) {
-            // Aqui o catch é a regra da tela: credencial errada volta para o login, preservando o destino
             if (isInternalPath(redirect)) {
                 return "redirect:/login?error&redirect=" + UriUtils.encodeQueryParam(redirect, StandardCharsets.UTF_8);
             }
@@ -105,7 +101,6 @@ public class AuthViewController {
         return "redirect:/login?registered";
     }
 
-    // Só aceita rota interna ("/checkout"); "//site" e "/\site" levariam o navegador para outro domínio.
     private static boolean isInternalPath(String redirect) {
         return redirect != null
                 && redirect.startsWith("/")

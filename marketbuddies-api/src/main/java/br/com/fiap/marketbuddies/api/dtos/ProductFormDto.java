@@ -13,9 +13,6 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-// Formulário do modal de criação/edição. Não tem preço: ele é calculado pela entidade (custo x (1 + markup)).
-// version vai num campo oculto para detectar edição concorrente (P3).
-// discountPercentage: 0 = sem oferta. O checkbox "Em oferta" do modal só mostra ou zera este campo.
 public record ProductFormDto(
         Long id,
 
@@ -53,12 +50,10 @@ public record ProductFormDto(
         @Max(value = 999999, message = "O estoque pode ser no máximo 999999.")
         Integer stock) {
 
-    // Modal vazio de "Novo produto": começa sem oferta.
     public static ProductFormDto empty() {
         return new ProductFormDto(null, null, null, null, null, null, null, BigDecimal.ZERO, null);
     }
 
-    // Valores atuais do banco, para reabrir o modal depois de um conflito de versão.
     public static ProductFormDto from(ProductEntity product) {
         return new ProductFormDto(
                 product.getId(),

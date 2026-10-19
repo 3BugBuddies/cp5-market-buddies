@@ -11,8 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
-// O único UserDetailsService do contexto: lê TB_USERS por e-mail
-// (no lugar do InMemoryUserDetailsManager do UserConfig da Aula 13).
 @Service
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {

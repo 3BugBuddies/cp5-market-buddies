@@ -45,8 +45,7 @@ public class OrderService {
     public record CreatedOrder(OrderDto order, PaymentRequestDto paymentRequest) {
     }
 
-    // Cria o pedido AWAITING_PAYMENT e reserva o estoque numa transação só (D17).
-    // Se faltar estoque em qualquer item, OutOfStockException desfaz tudo: nenhum item baixa.
+    /** Cria o pedido e reserva o estoque numa transação só; sem estoque, {@link OutOfStockException} desfaz tudo. */
     @Transactional
     public CreatedOrder createOrder(Long customerId, List<OrderItemRequestDto> requestedItems, OrderOrigin origin) {
         UserEntity customer = userRepository.findById(customerId)
@@ -55,8 +54,6 @@ public class OrderService {
             throw new BusinessException("Conta de administrador não faz compras");
         }
 
-        // Soma itens repetidos e ordena por id: as reservas travam as linhas sempre na mesma ordem,
-        // então dois pedidos simultâneos não entram em deadlock
         Map<Long, Integer> quantities = new TreeMap<>();
         requestedItems.forEach(i -> quantities.merge(i.productId(), i.quantity(), Integer::sum));
 
@@ -80,14 +77,12 @@ public class OrderService {
             ProductEntity product = products.get(entry.getKey());
             int quantity = entry.getValue();
 
-            // update … where stock >= :qty: devolve 0 quando falta, sem ler-e-gravar (sem corrida)
             if (productRepository.reserve(product.getId(), quantity) == 0) {
                 int available = productRepository.findById(product.getId()).map(ProductEntity::getStock).orElse(0);
                 throw new OutOfStockException("Sem estoque para " + product.getName()
                         + " (pedido " + quantity + ", disponível " + available + ")");
             }
 
-            // Foto do momento da compra (D8): nome, categoria, preço final e custo do dia
             OrderItemEntity item = new OrderItemEntity();
             item.setOrder(order);
             item.setProduct(product);
@@ -107,8 +102,7 @@ public class OrderService {
         return new CreatedOrder(OrderDto.from(saved), PaymentRequestDto.from(saved));
     }
 
-    // Pagamento aprovado. Update condicional (só sai de AWAITING_PAYMENT): devolve true só para a primeira
-    // resposta; repetida, atrasada (pedido já expirado) ou de um pedido que não existe neste banco devolve false.
+    /** Devolve {@code true} só na primeira resposta; repetida ou atrasada devolve {@code false}. */
     @Transactional
     public boolean markApproved(Long orderId, String authorizationCode) {
         int changed = orderRepository.respond(orderId, OrderStatus.APPROVED, authorizationCode, null, LocalDateTime.now());
@@ -120,8 +114,7 @@ public class OrderService {
         return true;
     }
 
-    // Pagamento recusado ou tempo esgotado: o mesmo update condicional e, só para quem mudou o status,
-    // a devolução do estoque reservado na mesma transação. Item com produto excluído (P2) não tem para onde voltar.
+    /** Devolve o estoque só na primeira resposta; repetida ou atrasada devolve {@code false}. */
     @Transactional
     public boolean markRefused(Long orderId, String reason) {
         int changed = orderRepository.respond(orderId, OrderStatus.REFUSED, null, reason, LocalDateTime.now());
@@ -142,7 +135,6 @@ public class OrderService {
         return true;
     }
 
-    // Ids dos pedidos que aguardam o banco desde antes de `limit` (job de expiração, P1).
     @Transactional(readOnly = true)
     public List<Long> findAwaitingSince(LocalDateTime limit) {
         return orderRepository.findByStatusAndCreatedAtBefore(OrderStatus.AWAITING_PAYMENT, limit).stream()
@@ -150,8 +142,7 @@ public class OrderService {
                 .toList();
     }
 
-    // Pedido com o status do último e-mail. Só o dono vê; o ADMIN vê todos (API).
-    // Pedido de outro cliente responde como inexistente (404), para não revelar quais ids existem.
+    /** Pedido de outro cliente responde 404, como se não existisse. */
     @Transactional(readOnly = true)
     public OrderDto getOrder(Long orderId, Long userId, boolean admin) {
         OrderEntity order = orderRepository.findDetailedById(orderId)
@@ -163,7 +154,6 @@ public class OrderService {
         return OrderDto.from(order, statusEmail);
     }
 
-    // Itens de um pedido RECUSADO do próprio cliente, para "Tentar de novo" remontar o carrinho (D20).
     @Transactional(readOnly = true)
     public List<RetryItemDto> retryItems(Long orderId, Long customerId) {
         OrderEntity order = orderRepository.findDetailedById(orderId)
@@ -175,7 +165,6 @@ public class OrderService {
         return order.getItems().stream().map(RetryItemDto::from).toList();
     }
 
-    // Resposta que não mudou nada: só registra o motivo, sem e-mail e sem devolução de estoque.
     private void logIgnored(Long orderId, String what) {
         String current = orderRepository.findById(orderId)
                 .map(o -> "já está " + o.getStatus())

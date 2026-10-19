@@ -1,7 +1,5 @@
-// MarketBuddies: comportamento comum das telas (sem dependências).
 document.addEventListener('DOMContentLoaded', () => {
 
-  // Mostrar/ocultar senha: <div class="mb-password"><input type="password"><button type="button">…</button></div>
   document.querySelectorAll('.mb-password').forEach((wrapper) => {
     const input = wrapper.querySelector('input');
     const button = wrapper.querySelector('button');
@@ -15,10 +13,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // <dialog data-aberto="true"> abre sozinho (ex.: erro de validação re-renderiza o modal aberto).
   document.querySelectorAll('dialog[data-aberto="true"]').forEach((dialog) => dialog.showModal());
 
-  // Abrir: <button data-dialog-open="id-do-dialog">. Fechar: <button data-dialog-close> dentro do dialog.
   document.querySelectorAll('[data-dialog-open]').forEach((trigger) => {
     trigger.addEventListener('click', () => {
       const dialog = document.getElementById(trigger.dataset.dialogOpen);
@@ -29,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     trigger.addEventListener('click', () => trigger.closest('dialog')?.close());
   });
 
-  // Menu da navbar no celular.
   document.querySelectorAll('.mb-navbar__menu').forEach((button) => {
     button.addEventListener('click', () => {
       const navbar = button.closest('.mb-navbar');
@@ -39,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/** Recarrega a tela do pedido quando o banco responde ou, no aprovado, quando o e-mail tem resultado. */
 function pollOrderStatus(section) {
   const url = section.dataset.orderStatusUrl;
   const waitEmail = section.dataset.orderWait === 'email';
@@ -72,18 +66,14 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('[data-order-status-url]').forEach(pollOrderStatus);
 });
 
-// Produtos (T5): stepper do detalhe e modais da gestão.
 document.addEventListener('DOMContentLoaded', () => {
   const brl = (value) => 'R$ ' + value.toFixed(2).replace('.', ',');
-  // Arredonda em centavos, metade para cima, como o BigDecimal HALF_UP da entidade.
   const round2 = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
   const num = (input) => {
     const n = Number(String(input?.value ?? '').replace(',', '.'));
     return input && input.value !== '' && Number.isFinite(n) ? n : NaN;
   };
 
-  // Stepper: <div data-stepper><button data-step="-1"><input type="number" min max><button data-step="1">.
-  // O botão de compra do mesmo form mostra o subtotal (data-unit-price + [data-subtotal]).
   document.querySelectorAll('[data-stepper]').forEach((stepper) => {
     const input = stepper.querySelector('input');
     const form = stepper.closest('form');
@@ -105,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
     input.addEventListener('change', clamp);
   });
 
-  // Modal de criação/edição da gestão.
   const productModal = document.getElementById('product-modal');
   const productForm = productModal?.querySelector('[data-product-form]');
   if (productModal && productForm) {
@@ -114,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const offerFields = productForm.querySelector('[data-offer-fields]');
     const deleteButton = productForm.querySelector('[data-modal-delete]');
 
-    // Prévia do preço: custo x (1 + markup), com o desconto da oferta. O servidor recalcula ao salvar.
     const preview = () => {
       const cost = num(field('cost'));
       const markup = num(field('markupPercentage'));
@@ -139,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     productForm.querySelectorAll('[data-preview-input]').forEach((input) => input.addEventListener('input', preview));
 
-    // Abrir para criar ou editar limpa os erros e o aviso de conflito de uma renderização anterior.
     const open = (data) => {
       productForm.querySelectorAll('.mb-field__error, [data-conflict]').forEach((el) => el.remove());
       productForm.querySelectorAll('.mb-input--error').forEach((el) => el.classList.remove('mb-input--error'));
@@ -166,14 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-product-new]').forEach((button) => button.addEventListener('click', () => open({})));
     document.querySelectorAll('[data-product-edit]').forEach((button) => button.addEventListener('click', () => open(button.dataset)));
 
-    // Re-renderização do servidor (erro ou conflito): o botão Excluir usa o produto do form.
     deleteButton.dataset.id = field('id').value;
     deleteButton.dataset.name = field('name').value;
     syncOffer();
     preview();
   }
 
-  // Confirmação de exclusão (da tabela ou do botão Excluir do modal de edição).
   const deleteModal = document.getElementById('delete-modal');
   const deleteForm = deleteModal?.querySelector('[data-delete-form]');
   if (deleteModal && deleteForm) {
@@ -189,7 +174,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Login: contas de teste (copiar valor e "Usar esta conta").
 document.addEventListener('DOMContentLoaded', () => {
   const status = document.querySelector('[data-copy-status]');
   document.querySelectorAll('[data-copy]').forEach((button) => {
@@ -199,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await navigator.clipboard.writeText(button.dataset.copy);
       } catch (e) {
-        // Sem permissão de área de transferência (http fora de localhost): o valor continua visível ao lado
         message = 'Não deu para copiar; selecione o texto';
       }
       button.classList.add('is-copied');

@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<!--
-  Card de produto da vitrine e da landing. Uso:
-    <article th:replace="~{fragments/product-card :: card(${p}, true)}"></article>
-  p é um ProductDto. buy = true (vitrine): "Adicionar ao carrinho" faz POST /cart/add (carrinho da T6) e some para ADMIN (Q7).
-  buy = false (landing): "Ver na loja" em secondary, porque o vermelho de marca fica para o CTA de compra.
--->
 <body>
 
 <article th:fragment="card(p, buy)" class="mb-product" th:classappend="${p.stock == 0} ? 'mb-product--out'">

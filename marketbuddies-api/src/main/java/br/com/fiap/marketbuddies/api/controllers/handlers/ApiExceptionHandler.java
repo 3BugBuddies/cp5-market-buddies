@@ -20,8 +20,6 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// Erros dos XxxApiController em JSON: {timestamp, status, error, message, path, errors?}.
-// @RestController também é @Controller, por isso este advice tem precedência sobre o das views.
 @Slf4j
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice(annotations = RestController.class)
@@ -57,7 +55,6 @@ public class ApiExceptionHandler {
         return build(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage(), request, null);
     }
 
-    // Login da API com credencial errada (AuthApiController).
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<Map<String, Object>> handleAuthentication(AuthenticationException ex,
                                                                     HttpServletRequest request) {
@@ -69,7 +66,6 @@ public class ApiExceptionHandler {
         return ResponseEntity.status(status).body(body(status, message, request.getRequestURI(), errors));
     }
 
-    // Corpo único dos erros da API; o SecurityConfig usa o mesmo para o 401/403 dos filtros.
     public static Map<String, Object> body(HttpStatus status, String message, String path,
                                            Map<String, String> errors) {
         Map<String, Object> body = new LinkedHashMap<>();

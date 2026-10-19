@@ -13,8 +13,6 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-// Mesmo papel do JwtUtil da Aula 13, com a API da jjwt 0.12 (a 0.11 do professor está descontinuada).
-// Token HS256: sub = e-mail, claim role = CUSTOMER | ADMIN.
 @Component
 public class JwtUtil {
 
@@ -22,7 +20,6 @@ public class JwtUtil {
     private final long expirationMs;
 
     public JwtUtil(JwtProperties properties) {
-        // HS256 exige chave de 32+ bytes; Keys.hmacShaKeyFor falha na subida se for menor
         this.signingKey = Keys.hmacShaKeyFor(properties.secret().getBytes(StandardCharsets.UTF_8));
         this.expirationMs = properties.expirationMs();
     }
@@ -40,12 +37,10 @@ public class JwtUtil {
                 .claim("role", role)
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expirationMs))
-                // Fixo em HS256: sem o algoritmo, a jjwt escolhe pelo tamanho da chave (HS384 para 48+ bytes)
                 .signWith(signingKey, Jwts.SIG.HS256)
                 .compact();
     }
 
-    // Lança JwtException se a assinatura não bate ou o token expirou.
     public String extractUsername(String token) {
         return parse(token).getSubject();
     }

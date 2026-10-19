@@ -17,13 +17,11 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-// Dados iniciais: só insere quando a tabela respectiva está vazia.
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
-    // Conta de cliente de teste, à mostra na tela de login (AuthViewController) para a correção.
     public static final String TEST_CUSTOMER_EMAIL = "cliente@marketbuddies.com";
     public static final String TEST_CUSTOMER_PASSWORD = "cliente123";
 

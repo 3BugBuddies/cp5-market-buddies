@@ -51,7 +51,6 @@
                                th:aria-label="'Ver ' + ${p.name}" title="Ver">
                                 <svg class="mb-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2"></circle><path d="M22 12c-2.7 4.7-6 7-10 7s-7.3-2.3-10-7c2.7-4.7 6-7 10-7s7.3 2.3 10 7"></path></svg>
                             </a>
-                            <!-- data-*: o JS preenche o modal de edição com estes valores -->
                             <button class="mb-btn mb-btn--secondary mb-btn--sm" type="button" title="Editar"
                                     th:aria-label="'Editar ' + ${p.name}" data-product-edit
                                     th:data-id="${p.id}" th:data-version="${p.version}" th:data-name="${p.name}"
@@ -76,7 +75,6 @@
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 
-<!-- Modal de criação/edição. Erro de validação ou conflito de versão re-renderiza a tela com data-aberto="true" -->
 <dialog id="product-modal" class="mb-modal" aria-labelledby="pm-title"
         th:attr="data-aberto=${modalOpen} ? 'true' : 'false'">
     <form class="mb-modal__panel" method="post" novalidate data-product-form th:object="${productForm}"
@@ -143,7 +141,6 @@
                 </div>
                 <div class="mb-field" style="gap: 8px">
                     <span class="mb-label">Oferta</span>
-                    <!-- O checkbox não vai para o servidor: só mostra o desconto ou o zera (0 = sem oferta) -->
                     <label class="mb-check" for="pm-oferta">
                         <input type="checkbox" id="pm-oferta" data-offer-toggle
                                th:checked="${productForm.discountPercentage != null and productForm.discountPercentage.signum() != 0}"> Em oferta
@@ -176,7 +173,6 @@
     </form>
 </dialog>
 
-<!-- Confirmação de exclusão: o JS troca o action para /admin/products/{id}/delete -->
 <dialog id="delete-modal" class="mb-modal mb-modal--sm" role="alertdialog" aria-labelledby="pe-title">
     <form class="mb-modal__panel" method="post" data-delete-form th:data-base-action="@{/admin/products}"
           th:action="@{/admin/products/0/delete}">

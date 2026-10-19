@@ -1,4 +1,3 @@
-/* MarketBuddies · Design System — generated from tokens.json */
 :root, [data-theme="light"] {
   --mb-blue-900: #0e2f66;
   --mb-blue-700: #1a4fa0;
@@ -77,8 +76,6 @@
 .label { font-family: var(--font-sans); font-size: 0.875rem; line-height: 1.4; font-weight: 500; }
 .small { font-family: var(--font-sans); font-size: 0.875rem; line-height: 1.5; font-weight: 400; }
 .caption { font-family: var(--font-sans); font-size: 0.75rem; line-height: 1.4; font-weight: 500; }
-/* MarketBuddies — componentes. Todos os valores vêm de tokens.css (var(--mb-*)); nenhum hex aqui.
-   Regras de base usam :where() para pesar zero: qualquer classe .mb-* vence o estilo genérico de link. */
 
 /* ---------- Base e layout ---------- */
 .mb-root, .mb-root *, .mb-root *::before, .mb-root *::after { box-sizing: border-box; }
@@ -137,7 +134,6 @@
 .mb-btn--danger:hover { background: var(--mb-danger); color: var(--mb-on-dark); border-color: var(--mb-danger); }
 .mb-btn--danger:active { background: var(--mb-danger-700); border-color: var(--mb-danger-700); }
 
-/* Sobre superfície azul: nunca --buy nem --ghost comum. */
 .mb-btn--on-dark { background: var(--mb-on-dark); color: var(--mb-blue-700); font-weight: var(--mb-fw-bold); }
 .mb-btn--on-dark:hover { background: var(--mb-blue-100); color: var(--mb-blue-900); box-shadow: var(--mb-shadow-md); }
 .mb-btn--on-dark:active { background: var(--mb-blue-200); }
@@ -156,7 +152,6 @@
 .mb-btn[disabled], .mb-btn--disabled { background: var(--mb-line); color: var(--mb-ink-500); border-color: transparent;
   cursor: not-allowed; pointer-events: none; box-shadow: none; transform: none; }
 
-/* Link de ação com seta (ex.: "Ver todos os produtos"). */
 .mb-link-arrow { display: inline-flex; align-items: center; gap: var(--mb-space-1); font-weight: var(--mb-fw-medium);
   color: var(--mb-blue-700); text-decoration: none; }
 .mb-link-arrow .mb-icon { transition: transform 150ms ease; }
@@ -204,7 +199,6 @@
 .mb-row { display: flex; justify-content: space-between; gap: var(--mb-space-4); }
 .mb-row--total { border-top: 1px solid var(--mb-line); padding-top: var(--mb-space-3); font-size: var(--mb-fs-lg); font-weight: var(--mb-fw-bold); }
 
-/* Benefício da landing: ícone em pastilha + texto. */
 .mb-feature { display: flex; gap: var(--mb-space-4); align-items: flex-start; }
 .mb-feature__icon { width: 48px; height: 48px; flex: none; border-radius: var(--mb-radius-md); display: grid; place-items: center;
   background: var(--mb-blue-100); color: var(--mb-blue-700); }
@@ -213,7 +207,6 @@
 .mb-feature h3 { margin: 0 0 var(--mb-space-1); }
 .mb-feature p { color: var(--mb-ink-600); font-size: var(--mb-fs-sm); }
 
-/* Chip de categoria (filtro). */
 .mb-chip { display: inline-flex; align-items: center; gap: var(--mb-space-2); height: 36px; padding: 0 var(--mb-space-4);
   border-radius: var(--mb-radius-pill); background: var(--mb-surface); border: 1px solid var(--mb-line); color: var(--mb-blue-900);
   font-size: var(--mb-fs-sm); font-weight: var(--mb-fw-medium); text-decoration: none; cursor: pointer;
@@ -349,9 +342,7 @@
   font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 .mb-kpi__meta { display: flex; gap: var(--mb-space-2); align-items: center; font-size: var(--mb-fs-xs); color: var(--mb-ink-500); }
 
-/* ---------- 4.13 Modal ----------
-   App: <dialog class="mb-modal"> + dialog.showModal() (foco preso, Esc fecha, ::backdrop).
-   Protótipo estático: .mb-modal-layer envolve o painel e faz o papel do backdrop. */
+/* ---------- 4.13 Modal ---------- */
 .mb-modal { border: 0; padding: 0; background: transparent; width: 720px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); overflow: visible; }
 .mb-modal::backdrop { background: var(--mb-scrim); backdrop-filter: blur(3px); }
 .mb-modal[open] { animation: mb-modal-in 200ms ease-out; }
@@ -399,7 +390,7 @@
   .mb-btn:hover, .mb-product:hover { transform: none; }
 }
 
-/* ---------- Produtos (T5) ---------- */
+/* ---------- Produtos ---------- */
 .mb-catalog-search { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--mb-space-3); max-width: 100%; }
 .mb-catalog-search .mb-field { width: 280px; max-width: 100%; }
 .mb-catalog-chips { display: flex; flex-wrap: wrap; gap: var(--mb-space-2); margin-bottom: var(--mb-space-5); }
@@ -412,8 +403,6 @@
 .mb-modal > .mb-modal__panel { width: 100%; }
 [data-offer-fields][hidden] { display: none !important; }
 
-/* Navbar no celular (achado da T4: "Entrar / Criar conta" estourava a 390 px).
-   A barra fica com logo, carrinho e menu; links e conta descem para o painel do menu aberto. */
 .mb-navbar__account { display: flex; align-items: center; gap: var(--mb-space-3); }
 @media (max-width: 640px) {
   .mb-navbar__inner { height: auto; min-height: var(--mb-navbar-h); flex-wrap: wrap; gap: 0 var(--mb-space-3); }
@@ -427,7 +416,6 @@
     border-top: 1px solid var(--mb-on-dark-hover); }
 }
 
-/* Login: quadro de contas de teste */
 .mb-test-accounts { display: flex; flex-direction: column; gap: var(--mb-space-3); padding: var(--mb-space-4); }
 .mb-test-account { display: flex; flex-direction: column; gap: var(--mb-space-1); padding-top: var(--mb-space-3); border-top: 1px solid var(--mb-line); }
 .mb-test-account__head { display: flex; align-items: center; justify-content: space-between; gap: var(--mb-space-2); }

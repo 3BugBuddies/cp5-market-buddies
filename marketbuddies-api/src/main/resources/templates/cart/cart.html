@@ -7,7 +7,6 @@
 <main class="mb-page" style="flex: 1">
     <div class="mb-container">
         <div th:replace="~{fragments/layout :: alerts}"></div>
-        <!-- Avisos do carrinho: limite de estoque (warning) e produto que saiu do catálogo (notices) -->
         <div class="mb-stack" style="margin-bottom: var(--mb-space-4)"
              th:if="${warning != null or (notices != null and !#lists.isEmpty(notices)) or !#lists.isEmpty(cart.notices)}">
             <div th:if="${warning != null}" class="mb-alert mb-alert--warning" role="status">
@@ -65,7 +64,6 @@
                         </td>
                         <td class="mb-num" th:text="${'R$ ' + #numbers.formatDecimal(it.unitPrice, 1, 'POINT', 2, 'COMMA')}">R$ 18,71</td>
                         <td class="mb-num">
-                            <!-- Stepper sem JS: cada botão envia a nova quantidade -->
                             <form th:action="@{/cart/update}" method="post" style="display: inline-flex">
                                 <input type="hidden" name="productId" th:value="${it.productId}">
                                 <div class="mb-stepper">

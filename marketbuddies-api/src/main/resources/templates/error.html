@@ -12,7 +12,6 @@
             <h1 class="mb-empty__title">
                 <span th:if="${status != null}" th:text="'Erro ' + ${status} + ' · '">Erro 500 · </span>Algo deu errado.
             </h1>
-            <!-- Mensagem de domínio (ViewExceptionHandler); erro inesperado mostra só o texto genérico -->
             <p th:if="${message != null and message != '' and message != 'No message available'}" th:text="${message}">Sem estoque para Leite integral 1 L.</p>
             <p th:unless="${message != null and message != '' and message != 'No message available'}">Tente de novo em instantes. Se continuar, volte para a loja e refaça o caminho.</p>
             <a class="mb-btn mb-btn--primary" th:href="@{/products}">Voltar para a loja</a>
